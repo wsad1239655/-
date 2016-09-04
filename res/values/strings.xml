@@ -4,9 +4,9 @@
     <string name="app_name">Mp3Player</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="artist">海波</string>
-    <string name="siger">我是歌手</string>
-    <string name="time">4:50</string>
+    <string name="artist"></string>
+    <string name="siger"></string>
+    <string name="time"></string>
      <string name="cancel">取消</string>
     <string  name="confrim">确定</string>
     <string name="shuffle_none">随机播放已关闭</string>

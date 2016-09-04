@@ -64,14 +64,22 @@ public class MainActivity extends Activity {
     public static final String MUSIC_CURRENT = "com.example.action.MUSIC_CURRENT";  
     public static final String MUSIC_DURATION = "com.example.action.MUSIC_DURATION";  
     public static final String REPEAT_ACTION = "com.example.action.REPEAT_ACTION";  
-    public static final String SHUFFLE_ACTION = "com.example.action.SHUFFLE_ACTION";  
+    public static final String SHUFFLE_ACTION = "com.example.action.SHUFFLE_ACTION";
+    public static final String LIST_ACTION = "com.example.action.LIST_ACTION";      //记录音乐播放列表
+    public static final String ISPLAYINT_ACTION = "com.example.action.ISPLAYINT_ACTION";//更新播放图标
+
+    
+    private MyReceiver myReceiver;
+    
+  //创建一个数列记录播放位置
+  	List list;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		
+		list = new ArrayList();
 		mMusiclist = (ListView) findViewById(R.id.music_list);
 		mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); // 需要获取SD卡权限，再获取歌曲对象集合
 		listAdapter = new MusicListAdapter(this, mp3Infos);
@@ -82,13 +90,15 @@ public class MainActivity extends Activity {
 		setOnclickListioner();
 				
 		//动态注册广播监听器，监听service返回的消息
-		MyReceiver myReceiver = new MyReceiver();
+		myReceiver = new MyReceiver();
 		IntentFilter filter = new IntentFilter();
 		 filter.addAction(UPDATE_ACTION);  
 		 filter.addAction(MUSIC_CURRENT);  
 		 filter.addAction(MUSIC_DURATION);  
 		 filter.addAction(REPEAT_ACTION);  
 		 filter.addAction(SHUFFLE_ACTION);  
+		 filter.addAction(LIST_ACTION);
+		 filter.addAction(ISPLAYINT_ACTION);
 		 registerReceiver(myReceiver, filter);
 		
 		 
@@ -170,17 +180,28 @@ public class MainActivity extends Activity {
 						playButton.setImageResource(R.drawable.play);
 						intent.setAction("com.example.MUSIC_SERVICE");
 						intent.putExtra("MSG", AppConstant.PlayerMsg.PAUSE_MSG);
+						intent.setPackage(getPackageName());
 						startService(intent);
 						isPlaying = false;
 						isPause = true;
+						
+						//图标更改标识
+						intent = new Intent(ISPLAYINT_ACTION);
+						intent.putExtra("isPlaying", false);
+						sendBroadcast(intent);
 					} 
 					else if(isPause){
 						playButton.setImageResource(R.drawable.pause);
 						intent.setAction("com.example.MUSIC_SERVICE");
 						intent.putExtra("MSG", AppConstant.PlayerMsg.CONTINUE_MSG);
+						intent.setPackage(getPackageName());
 						startService(intent);
 						isPause = false;
 						isPlaying = true;
+						
+						intent = new Intent(ISPLAYINT_ACTION);
+						intent.putExtra("isPlaying", true);
+						sendBroadcast(intent);
 					}
 				}
 				
@@ -201,6 +222,7 @@ public class MainActivity extends Activity {
 					isShuffle = false;
 					repeatButton.setClickable(true);
 				}
+				break;
 			//下一首
 			case R.id.next_music:
 				playButton.setImageResource(R.drawable.pause);
@@ -219,7 +241,12 @@ public class MainActivity extends Activity {
 				 intent.putExtra("listPosition", listPosition);  
 				 intent.putExtra("currentTime", currentTime);  
 				 intent.putExtra("duration", duration);  
-				 intent.putExtra("MSG", AppConstant.PlayerMsg.PLAYING_MSG);  
+				 intent.putExtra("MSG", AppConstant.PlayerMsg.PLAYING_MSG);
+				 if (isPlaying) {
+					 intent.putExtra("isPlaying", true);
+				} else {
+					intent.putExtra("isPlaying", false);
+				}
 				 startActivity(intent);  
 				 break;  
 			}
@@ -230,12 +257,11 @@ public class MainActivity extends Activity {
 	//监听列表
 	private class MusicListItemClickListener implements OnItemClickListener{
 	
-		//创建一个数列
-		List list = new ArrayList();
 		//创建
 		Intent intent = new Intent();
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+			
 			//监听并改变当前播放音乐的位置
 			listPosition = position;
 			//放入当前的播放位置在列表
@@ -247,6 +273,7 @@ public class MainActivity extends Activity {
 						playButton.setImageResource(R.drawable.play);
 						intent.setAction("com.example.MUSIC_SERVICE");
 						intent.putExtra("MSG", AppConstant.PlayerMsg.PAUSE_MSG);
+						intent.setPackage(getPackageName());
 						startService(intent);
 						isPlaying = false;
 						isPause = true;
@@ -255,6 +282,7 @@ public class MainActivity extends Activity {
 						playButton.setImageResource(R.drawable.pause);
 						intent.setAction("com.example.MUSIC_SERVICE");
 						intent.putExtra("MSG", AppConstant.PlayerMsg.CONTINUE_MSG);
+						intent.setPackage(getPackageName());
 						startService(intent);
 						isPause = false;
 						isPlaying = true;
@@ -289,6 +317,8 @@ public class MainActivity extends Activity {
 	public void reverse(){
 		if (listPosition >  0) {
 			listPosition--;
+			//放入当前的播放位置在列表
+			list.add(listPosition);
 			Mp3Info mp3Info = mp3Infos.get(listPosition);
 			musicTitle.setText(mp3Info.getTitle());
 			Intent intent = new Intent();
@@ -305,6 +335,8 @@ public class MainActivity extends Activity {
 	public void next(){
 		if (listPosition < mp3Infos.size() - 1) {
 			listPosition++;
+			//放入当前的播放位置在列表
+			list.add(listPosition);
 			Mp3Info mp3Info = mp3Infos.get(listPosition);
 			musicTitle.setText(mp3Info.getTitle());
 			Intent intent = new Intent();
@@ -392,10 +424,11 @@ public class MainActivity extends Activity {
 				currentTime = intent.getIntExtra("currentTime", -1);
 				musicDuration.setText(MediaUtils.formatTime(currentTime));
 				
+				
 			}
 			//设置返回歌曲长度
 			else if (action.equals(MUSIC_DURATION)) {
-				duration = intent.getIntExtra("durantion", -1);
+				duration = intent.getIntExtra("duration", -1);
 			}
 			//点击上一首下一首返回的歌曲位置
 			else if (action.equals(UPDATE_ACTION)) {
@@ -403,6 +436,7 @@ public class MainActivity extends Activity {
 				if (listPosition >= 0) {
 					musicTitle.setText(mp3Infos.get(listPosition).getTitle());
 				}
+				
 			}
 			//返回重复播放的方式
 			else if (action.equals(REPEAT_ACTION)) {
@@ -432,6 +466,22 @@ public class MainActivity extends Activity {
 				}
 			}
 			
+			//播放列表
+			else if(action.equals(LIST_ACTION)){
+				list = (List) intent.getSerializableExtra("list");
+				musicTitle.setText(intent.getStringExtra("title"));
+			}
+			//更改播放图标
+			else if(action.equals(ISPLAYINT_ACTION)){
+				isPlaying = intent.getBooleanExtra("isPlaying", true);
+				if (isPlaying) {
+					playButton.setImageResource(R.drawable.pause);
+				} else {
+					playButton.setImageResource(R.drawable.play);
+					isPause = true;
+					
+				}
+			}
 			
 			
 		}
@@ -441,11 +491,12 @@ public class MainActivity extends Activity {
 	
 	
 	
-	
-	
-	
-	
-	
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

@@ -34,12 +34,15 @@ public class PlayerService extends Service{
     private MusicReceiver musicReceiver;  //自定义广播接收器  
     private int currentTime;        //当前播放进度  
     private int duration;           //播放长度  
+    
+    
 	
 	//服务要发送的一些Action  
     public static final String UPDATE_ACTION = "com.example.action.UPDATE_ACTION";  //更新动作  
     public static final String CTL_ACTION = "com.example.action.CTL_ACTION";        //控制动作  
     public static final String MUSIC_CURRENT = "com.example.action.MUSIC_CURRENT";  //当前音乐播放时间更新动作  
-    public static final String MUSIC_DURATION = "com.example.action.MUSIC_DURATION";//新音乐长度更新动作  
+    public static final String MUSIC_DURATION = "com.example.action.MUSIC_DURATION";//新音乐长度更新动作 
+    public static final String ISPLAYINT_ACTION = "com.example.action.ISPLAYINT_ACTION";//更新播放图标
 
     
     private Handler handler = new Handler(){
@@ -182,6 +185,7 @@ public class PlayerService extends Service{
 			mediaPlayer.prepare();
 			mediaPlayer.setOnPreparedListener(new PreparedListener(currentTime));
 			
+			
 			handler.sendEmptyMessage(1);
 			
 			
@@ -202,6 +206,7 @@ public class PlayerService extends Service{
 			mediaPlayer.start();
 			isPause = false;
 		}
+	
 	}
 	//上一首
 	private void reverse(){
@@ -217,7 +222,7 @@ public class PlayerService extends Service{
         sendIntent.putExtra("current", current);  
         // 发送广播，将被Activity组件中的BroadcastReceiver接收到  
         sendBroadcast(sendIntent);  
-        play(0);  
+        play(0);
 	}
 	//停止播放
 	private void stop(){
@@ -228,7 +233,8 @@ public class PlayerService extends Service{
 	            } catch (Exception e) {  
 	                e.printStackTrace();  
 	            }  
-	        }  
+	        }
+		
 	}
 	
 	//定义一个监听器，判断是否从头开始播放，若传入当前播放时间，则从时间点开始播放，并将音乐长度发送回主界面
@@ -247,12 +253,14 @@ public class PlayerService extends Service{
 			if(currentTime > 0){
 				mediaPlayer.seekTo(currentTime);
 			}
+			
 			//将歌曲的长度发送出去
 			Intent intent = new Intent();
 			intent.setAction(MUSIC_DURATION);
 			duration = mediaPlayer.getDuration();
 			intent.putExtra("duration", duration);
 			sendBroadcast(intent);
+			
 		}
 	
 	}

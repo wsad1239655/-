@@ -47,7 +47,11 @@ public class MediaUtils {
 	        mp3Info.setUrl(url);  
 	        mp3Infos.add(mp3Info);  
 	        }  
-	    }  
+	    }
+	    
+	    if(cursor != null){
+	    	cursor.close();
+	    }
 	    
 	return mp3Infos;  
 	}  
