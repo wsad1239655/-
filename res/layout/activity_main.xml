@@ -5,72 +5,80 @@
     android:background="@drawable/playback"
     android:orientation="vertical"
     >
-
-    <LinearLayout 
+    
+    <LinearLayout
         android:id="@+id/handle_btnlayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-		android:layout_marginTop="20dp"
+		android:layout_marginTop="15dp"
 		android:orientation="horizontal"
         >
-        <ImageButton
-            android:id="@+id/reverse_music"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/reverse"
-            android:background="#00000000"
-            />
         
-        <ImageButton
-            android:id="@+id/repeat_music"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_weight="1"
-            android:src="@drawable/repeat"
-            android:background="#00000000"
-             />
-        
+		<TextView
+       	 	android:id="@+id/locallist"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:textSize="20sp"
+        	android:text="本地列表" 
+        	android:layout_marginTop="15dp"
+        	android:layout_weight="1"
+        	android:layout_marginLeft="15dp"
+        	/>
+		
+		<View 
+		    android:id="@+id/View"
+   		    android:layout_width="1dp"
+      		android:layout_height="20dp"
+      		android:background="#cccccc"
+      		android:layout_marginTop="20dp"
+      		/>
+		
+    
+   	 	<TextView
+        	android:id="@+id/netlist"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:textSize="20sp"
+        	android:text="网络列表"
+        	android:layout_marginTop="15dp"
+        	android:layout_weight="1"
+        	android:layout_marginLeft="15dp"
+        	/>
+      
         <ImageButton
             android:id="@+id/play_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:src="@drawable/play"
             android:background="#00000000"
+            android:layout_weight="1"
              />
         
-        <ImageButton
-            android:id="@+id/shuffle_music"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_weight="1"
-            android:src="@drawable/shuffle"
-            android:background="#00000000"
-             />
+        
         
         <ImageButton 
             android:id="@+id/next_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:src="@drawable/next"
             android:background="#00000000"
+            android:layout_weight="1"
             />
      
     </LinearLayout>
     
    
-
-    <ListView 
-        android:id="@+id/music_list"
+	<FrameLayout 
+	    android:id="@+id/fragment_layout"
         android:layout_width="match_parent"  
         android:layout_height="0dp"
         android:layout_weight="1"
-        ></ListView>
-  
+	    >
+	    
+	</FrameLayout>
+	
+	
+ 
 
     <LinearLayout 
         android:id="@+id/singleSong_layout"
@@ -123,8 +131,9 @@
         </LinearLayout>
         
        <RelativeLayout 
-           android:layout_width="wrap_content"
+           android:layout_width="100dp"
            android:layout_height="wrap_content"
+           android:layout_weight="1"
            >
            
         <ImageButton 

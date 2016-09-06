@@ -188,7 +188,6 @@ public class PlayerService extends Service{
 			
 			handler.sendEmptyMessage(1);
 			
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

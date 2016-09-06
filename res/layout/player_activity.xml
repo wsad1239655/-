@@ -14,7 +14,7 @@
         >
         
         <ImageButton
-            android:id="@id/repeat_music"
+            android:id="@+id/repeat_music"
             android:background="#00000000"
             android:src="@drawable/repeat"
             android:layout_width="wrap_content"
@@ -52,7 +52,7 @@
             />
         
          <ImageButton 
-             android:id="@id/shuffle_music"
+             android:id="@+id/shuffle_music"
              android:background="#00000000"
              android:src="@drawable/shuffle"
              android:layout_width="wrap_content"
@@ -129,7 +129,7 @@
             />
         
         <ImageButton 
-            android:id="@id/reverse_music"
+            android:id="@+id/reverse_music"
             android:background="#00000000"
             android:src="@drawable/reverse"
             android:layout_width="wrap_content"

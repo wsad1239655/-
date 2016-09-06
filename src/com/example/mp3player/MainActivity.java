@@ -1,11 +1,16 @@
 package com.example.mp3player;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 
 import adapter.MusicListAdapter;
 import android.R.integer;
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -28,6 +33,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import model.AppConstant;
 import model.Mp3Info;
+import mp3fragment.Localfragment;
+import mp3fragment.NetFragment;
 import utils.MediaUtils;
 
 public class MainActivity extends Activity {
@@ -43,6 +50,8 @@ public class MainActivity extends Activity {
 	private ImageButton musicPlaying;//正在播放
 	private TextView musicTitle;//歌名
 	private TextView musicDuration;//时长
+	private TextView localList;
+	private TextView netList;
 	
 	private int repeatState;        //循环标识  
 	private final int isCurrentRepeat = 1; // 单曲循环  
@@ -57,6 +66,13 @@ public class MainActivity extends Activity {
 	private int listPosition = 0;   //标识列表位置 
 	private int currentTime;  //当前播放时间
 	private int duration;  //歌曲长度
+	private static final String fragment1Tag = "fragment1";
+	private static final String fragment2Tag = "fragment2";
+	
+	FragmentManager manager;
+	FragmentTransaction transaction;
+	Fragment fragment1;
+	Fragment fragment2;
 	
 	 //一系列动作  
     public static final String UPDATE_ACTION = "com.example.action.UPDATE_ACTION";  
@@ -72,20 +88,21 @@ public class MainActivity extends Activity {
     private MyReceiver myReceiver;
     
   //创建一个数列记录播放位置
-  	List list;
+  	private List list;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		list = new ArrayList();
-		mMusiclist = (ListView) findViewById(R.id.music_list);
+		
+		list = new ArrayList<Integer>();
 		mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); // 需要获取SD卡权限，再获取歌曲对象集合
-		listAdapter = new MusicListAdapter(this, mp3Infos);
-		mMusiclist.setAdapter(listAdapter);
-		mMusiclist.setOnCreateContextMenuListener(new MusicListItemContextMenuListener());
-		mMusiclist.setOnItemClickListener(new MusicListItemClickListener());
+//		mMusiclist = (ListView) findViewById(R.id.music_list);
+//		listAdapter = new MusicListAdapter(this, mp3Infos);
+//		mMusiclist.setAdapter(listAdapter);
+//		mMusiclist.setOnCreateContextMenuListener(new MusicListItemContextMenuListener());
+//		mMusiclist.setOnItemClickListener(new MusicListItemClickListener());
 		findViewById();
 		setOnclickListioner();
 				
@@ -101,72 +118,53 @@ public class MainActivity extends Activity {
 		 filter.addAction(ISPLAYINT_ACTION);
 		 registerReceiver(myReceiver, filter);
 		
+		 //创建fragment1并显示列表布局
+		 manager = getFragmentManager();
+		 transaction = manager.beginTransaction();
+		 fragment1 = manager.findFragmentByTag(fragment1Tag);
+		 fragment1 = new Localfragment();
+		 transaction.add(R.id.fragment_layout, fragment1, fragment1Tag);
+		 transaction.addToBackStack(null);			 
+		 transaction.commit();
 		 
 	}
 	
 	//定义view的Id
 	private void findViewById() {
-		reverseButton = (ImageButton)findViewById(R.id.reverse_music);
-		repeatButton = (ImageButton)findViewById(R.id.repeat_music);
 		playButton = (ImageButton)findViewById(R.id.play_music);
-		shuffleButton = (ImageButton)findViewById(R.id.shuffle_music);
 		nextButton = (ImageButton)findViewById(R.id.next_music);
 		musicPlaying = (ImageButton)findViewById(R.id.playing);
 		musicTitle = (TextView)findViewById(R.id.music_title);
 		musicDuration = (TextView)findViewById(R.id.music_duration);
-		
+		localList = (TextView)findViewById(R.id.locallist);
+		netList = (TextView)findViewById(R.id.netlist);		
 	}
 	//注册监听器
 	private void setOnclickListioner(){
 		ViewClickLintener viewClickLintener = new ViewClickLintener();
-		repeatButton.setOnClickListener(viewClickLintener);
-		reverseButton.setOnClickListener(viewClickLintener);
 		playButton.setOnClickListener(viewClickLintener);
-		shuffleButton.setOnClickListener(viewClickLintener);
 		nextButton.setOnClickListener(viewClickLintener);
 		musicPlaying.setOnClickListener(viewClickLintener);
 		musicDuration.setOnClickListener(viewClickLintener);
 		musicTitle.setOnClickListener(viewClickLintener);
-		
+		localList.setOnClickListener(viewClickLintener);
+		netList.setOnClickListener(viewClickLintener);
+
 	}
 	//定义监听器
 	private class ViewClickLintener implements OnClickListener{
-
+		
 		Intent intent = new Intent();
 		@Override
-		public void onClick(View v) {			
+		public void onClick(View v) {
+			manager = getFragmentManager();
+			transaction = manager.beginTransaction();
+			fragment1 = manager.findFragmentByTag(fragment1Tag);
+			fragment2 = manager.findFragmentByTag(fragment2Tag);
+		
 			switch (v.getId()) {
-			//上一首
-			case R.id.reverse_music:
-				playButton.setImageResource(R.drawable.pause);
-				isFirstTime = false;
-				isPlaying = true;
-				isPause = false;
-				reverse();
-				break;
-			//重复播放
-			case R.id.repeat_music:
-				//单曲循环
-				if(repeatState == isNoneRepeat){
-					repeat_one();
-					shuffleButton.setClickable(false);
-					Toast.makeText(MainActivity.this, R.string.repeat_current, Toast.LENGTH_SHORT).show();
-				}
-				//全部循环
-				else if (repeatState == isCurrentRepeat) {
-					repeat_all();
-					shuffleButton.setClickable(false);
-					Toast.makeText(MainActivity.this, R.string.repeat_all, Toast.LENGTH_SHORT).show();  
-				}
-				//顺序播放
-				else if (repeatState == isAllRepeat) {
-					repeat_none();
-					shuffleButton.setClickable(true);
-					Toast.makeText(MainActivity.this, R.string.repeat_none, Toast.LENGTH_SHORT).show();
-				}
-				
-				
-				break;
+			
+			
 			//播放音乐	
 			case R.id.play_music:
 				if(isFirstTime){
@@ -185,10 +183,7 @@ public class MainActivity extends Activity {
 						isPlaying = false;
 						isPause = true;
 						
-						//图标更改标识
-						intent = new Intent(ISPLAYINT_ACTION);
-						intent.putExtra("isPlaying", false);
-						sendBroadcast(intent);
+						
 					} 
 					else if(isPause){
 						playButton.setImageResource(R.drawable.pause);
@@ -199,30 +194,12 @@ public class MainActivity extends Activity {
 						isPause = false;
 						isPlaying = true;
 						
-						intent = new Intent(ISPLAYINT_ACTION);
-						intent.putExtra("isPlaying", true);
-						sendBroadcast(intent);
+					
 					}
 				}
 				
 				break;
-			//随机播放
-			case R.id.shuffle_music:
-				if(isNoneShuffle){
-					Toast.makeText(MainActivity.this, R.string.shuffle, Toast.LENGTH_SHORT).show();
-					isNoneShuffle = false;
-					isShuffle = true;
-					shuffle();
-					repeatButton.setClickable(false);
-					
-				}
-				else if (isShuffle) {
-					Toast.makeText(MainActivity.this, R.string.shuffle_none, Toast.LENGTH_SHORT).show();
-					isNoneShuffle = true;
-					isShuffle = false;
-					repeatButton.setClickable(true);
-				}
-				break;
+			
 			//下一首
 			case R.id.next_music:
 				playButton.setImageResource(R.drawable.pause);
@@ -230,79 +207,119 @@ public class MainActivity extends Activity {
 				isPlaying = true;
 				isPause = false;
 				next();
+				
+				intent = new Intent(LIST_ACTION);
+				intent.putExtra("list", (Serializable)list);
+				sendBroadcast(intent);
 				break;
 			//正在播放
 			case R.id.playing:
-				 Mp3Info mp3Info = mp3Infos.get(listPosition);  
-				 Intent intent = new Intent(MainActivity.this, PlayerActivity.class);  
-				 intent.putExtra("title", mp3Info.getTitle());     
-				 intent.putExtra("url", mp3Info.getUrl());  
-				 intent.putExtra("artist", mp3Info.getArtist());  
-				 intent.putExtra("listPosition", listPosition);  
-				 intent.putExtra("currentTime", currentTime);  
-				 intent.putExtra("duration", duration);  
-				 intent.putExtra("MSG", AppConstant.PlayerMsg.PLAYING_MSG);
-				 if (isPlaying) {
-					 intent.putExtra("isPlaying", true);
-				} else {
-					intent.putExtra("isPlaying", false);
-				}
-				 startActivity(intent);  
+				startPlayerActivity();
 				 break;  
+				//正在播放
+			case R.id.music_title:
+				startPlayerActivity();
+				 break;  
+				//正在播放
+			case R.id.music_duration:
+				startPlayerActivity();
+				 break;  
+				 
+			case R.id.locallist:
+				//隐藏fragment2，显示fragment1
+				transaction.hide(fragment2);				
+				transaction.show(fragment1);				
+				transaction.commit();				
+				break;	 
+				
+			case R.id.netlist:
+				//隐藏fragment1，显示fragment2
+				transaction.hide(fragment1);
+				if (fragment2 == null) {
+					fragment2 = new NetFragment();
+					transaction.add(R.id.fragment_layout, fragment2, fragment2Tag);
+					transaction.addToBackStack(null);
+				} else {
+					transaction.show(fragment2);
+				}
+				//结束语句
+				transaction.commit();
+				break;
+				
 			}
 			
 		}
 		
 	}
-	//监听列表
-	private class MusicListItemClickListener implements OnItemClickListener{
 	
-		//创建
-		Intent intent = new Intent();
-		@Override
-		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			
-			//监听并改变当前播放音乐的位置
-			listPosition = position;
-			//放入当前的播放位置在列表
-			list.add(listPosition);
-			//第一次点击列表时播放音乐，第二次则判断是否点击同一个位置，进行播放与暂停
-		 if(list.size() > 1){
-			 if (list.get(list.size()-2) == (Object)listPosition) {
-				 if (isPlaying) {
-						playButton.setImageResource(R.drawable.play);
-						intent.setAction("com.example.MUSIC_SERVICE");
-						intent.putExtra("MSG", AppConstant.PlayerMsg.PAUSE_MSG);
-						intent.setPackage(getPackageName());
-						startService(intent);
-						isPlaying = false;
-						isPause = true;
-					} 
-					else if(isPause){
-						playButton.setImageResource(R.drawable.pause);
-						intent.setAction("com.example.MUSIC_SERVICE");
-						intent.putExtra("MSG", AppConstant.PlayerMsg.CONTINUE_MSG);
-						intent.setPackage(getPackageName());
-						startService(intent);
-						isPause = false;
-						isPlaying = true;
-					}
-			}
-			 else{
-				 play(listPosition);
-			 }
-		 }
-		 else{
-			 isFirstTime = false;
-			 isPlaying = true;
-			 isPause = false;
-			 play(listPosition);
-		 }
-			
-			
+	//启动PlayerActivity
+	private void startPlayerActivity(){
+		 Mp3Info mp3Info = mp3Infos.get(listPosition);  
+		 Intent intent = new Intent(MainActivity.this, PlayerActivity.class);  
+		 intent.putExtra("title", mp3Info.getTitle());     
+		 intent.putExtra("url", mp3Info.getUrl());  
+		 intent.putExtra("artist", mp3Info.getArtist());  
+		 intent.putExtra("listPosition", listPosition);  
+		 intent.putExtra("currentTime", currentTime);  
+		 intent.putExtra("duration", duration);  
+		 intent.putExtra("MSG", AppConstant.PlayerMsg.PLAYING_MSG);
+		 if (isPlaying) {
+			intent.putExtra("isPlaying", true);
+		} else {
+			intent.putExtra("isPlaying", false);
 		}
-		
+		 startActivity(intent);  
 	}
+	
+//	//监听列表
+//	private class MusicListItemClickListener implements OnItemClickListener{
+//	
+//		//创建
+//		Intent intent = new Intent();
+//		@Override
+//		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//			
+//			//监听并改变当前播放音乐的位置
+//			listPosition = position;
+//			//放入当前的播放位置在列表
+//			list.add(listPosition);
+//			//第一次点击列表时播放音乐，第二次则判断是否点击同一个位置，进行播放与暂停
+//		 if(list.size() > 1){
+//			 if (list.get(list.size()-2) == (Object)listPosition) {
+//				 if (isPlaying) {
+//						playButton.setImageResource(R.drawable.play);
+//						intent.setAction("com.example.MUSIC_SERVICE");
+//						intent.putExtra("MSG", AppConstant.PlayerMsg.PAUSE_MSG);
+//						intent.setPackage(getPackageName());
+//						startService(intent);
+//						isPlaying = false;
+//						isPause = true;
+//					} 
+//					else if(isPause){
+//						playButton.setImageResource(R.drawable.pause);
+//						intent.setAction("com.example.MUSIC_SERVICE");
+//						intent.putExtra("MSG", AppConstant.PlayerMsg.CONTINUE_MSG);
+//						intent.setPackage(getPackageName());
+//						startService(intent);
+//						isPause = false;
+//						isPlaying = true;
+//					}
+//			}
+//			 else{
+//				 play(listPosition);
+//			 }
+//		 }
+//		 else{
+//			 isFirstTime = false;
+//			 isPlaying = true;
+//			 isPause = false;
+//			 play(listPosition);
+//		 }
+//			
+//			
+//		}
+//		
+//	}
 	
 	//给列表的子View增加菜单项
 	private class  MusicListItemContextMenuListener implements OnCreateContextMenuListener{
@@ -313,24 +330,7 @@ public class MainActivity extends Activity {
 		}
 		
 	}
-	//上一首
-	public void reverse(){
-		if (listPosition >  0) {
-			listPosition--;
-			//放入当前的播放位置在列表
-			list.add(listPosition);
-			Mp3Info mp3Info = mp3Infos.get(listPosition);
-			musicTitle.setText(mp3Info.getTitle());
-			Intent intent = new Intent();
-			intent.setAction("com.example.MUSIC_SERVICE");
-			intent.putExtra("listPosition", listPosition);
-			intent.putExtra("url", mp3Info.getUrl());
-			intent.putExtra("MSG", AppConstant.PlayerMsg.REVERSE_MSG);
-			intent.setPackage(getPackageName());//添加此步骤才可以启动服务
-			startService(intent);
-		}
-		
-	}
+	
 	//下一首
 	public void next(){
 		if (listPosition < mp3Infos.size() - 1) {
@@ -350,9 +350,9 @@ public class MainActivity extends Activity {
 		
 	}
 	//播放
-	public void play(int position){
+	public void play(int listposition){
 		playButton.setImageResource(R.drawable.pause);
-		Mp3Info mp3Info = mp3Infos.get(position);
+		Mp3Info mp3Info = mp3Infos.get(listposition);
 		musicTitle.setText(mp3Info.getTitle());
 		Intent intent = new Intent();
 		intent.putExtra("listPosition", 0);
@@ -362,30 +362,6 @@ public class MainActivity extends Activity {
 		startService(intent);
 	}
 
-	//单曲循环
-	public void repeat_one(){
-	    Intent intent = new Intent(CTL_ACTION); //广播标识 
-        intent.putExtra("control", 1);  
-        sendBroadcast(intent);  
-	}
-	//全部循环
-	public void repeat_all(){
-		Intent intent = new Intent(CTL_ACTION);  
-		intent.putExtra("control", 2);  
-		sendBroadcast(intent);  
-	}
-	//顺序播放
-	public void repeat_none(){
-		Intent intent = new Intent(CTL_ACTION);  
-        intent.putExtra("control", 3);  
-        sendBroadcast(intent);
-	}
-	//随机
-	public void shuffle(){
-		Intent intent = new Intent(CTL_ACTION);  
-        intent.putExtra("control", 4);  
-        sendBroadcast(intent);
-	}
 	
 	//正在播放的音乐
 	public void playMusic(int listposition){
@@ -398,8 +374,6 @@ public class MainActivity extends Activity {
 			intent.putExtra("artist", mp3Info.getArtist());
 			intent.putExtra("listPosition", listPosition);  
 			intent.putExtra("currentTime", currentTime);  
-			intent.putExtra("repeatState", repeatState);  
-			intent.putExtra("shuffleState", isShuffle); 
 			intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);  
             startActivity(intent);  
 		}
@@ -438,38 +412,17 @@ public class MainActivity extends Activity {
 				}
 				
 			}
-			//返回重复播放的方式
-			else if (action.equals(REPEAT_ACTION)) {
-				repeatState = intent.getIntExtra("repeatState", -1);
-				switch(repeatState){
-				case isCurrentRepeat:
-					shuffleButton.setClickable(false);
-					break;
-				case isAllRepeat:
-					shuffleButton.setClickable(false);
-					break;
-				case isNoneRepeat:
-					shuffleButton.setClickable(true);
-					break;
-				}
-			}
-			//返回随机播放的方式
-			else if (action.equals(SHUFFLE_ACTION)) {
-				isShuffle = intent.getBooleanExtra("shuffleState", false);
-				if(isShuffle){
-					isNoneShuffle = false;
-					repeatButton.setClickable(false);
-				}
-				else{
-					isNoneShuffle = true;
-					repeatButton.setClickable(true);
-				}
-			}
 			
-			//播放列表
+			//监听fragment的播放列表与播放位置
 			else if(action.equals(LIST_ACTION)){
 				list = (List) intent.getSerializableExtra("list");
-				musicTitle.setText(intent.getStringExtra("title"));
+				listPosition = intent.getIntExtra("listPosition", -1);
+				if (list.size()>0) {
+					isFirstTime = false;
+					isPlaying = true;
+					isPause = false;
+				}
+				
 			}
 			//更改播放图标
 			else if(action.equals(ISPLAYINT_ACTION)){
@@ -478,6 +431,7 @@ public class MainActivity extends Activity {
 					playButton.setImageResource(R.drawable.pause);
 				} else {
 					playButton.setImageResource(R.drawable.play);
+					isPlaying = false;
 					isPause = true;
 					
 				}
@@ -489,9 +443,6 @@ public class MainActivity extends Activity {
 	}
 	
 	
-	
-	
-
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();

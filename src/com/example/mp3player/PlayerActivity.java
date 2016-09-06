@@ -79,7 +79,7 @@ public class PlayerActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.player_activity);
 		
-		list = new ArrayList();
+		list = new ArrayList<Integer>();
 		findViewById();
 		setViewOnClickListener();
 		mp3Infos = MediaUtils.getMp3Infos(PlayerActivity.this);
@@ -117,6 +117,7 @@ public class PlayerActivity extends Activity {
 		playButton.setOnClickListener(clickListener);
 		shuffleButton.setOnClickListener(clickListener);
 		nextButton.setOnClickListener(clickListener);
+		music_progressBar.setOnSeekBarChangeListener(new SeekBarChangeListener());
 	}
 	
 	//每次启动Activity都更新界面
@@ -135,24 +136,24 @@ public class PlayerActivity extends Activity {
 		duration = bundle.getInt("duration");
 		isPlaying = bundle.getBoolean("isPlaying");
 		
+				
+		//接收广播并判断，更改播放图标
 		if (isPlaying) {
 			playButton.setImageResource(R.drawable.pause);
+			isPause = false;
 		}
 		else {
 			playButton.setImageResource(R.drawable.play);
-			
+			isPlaying = false;
+			isPause = true;
 		}
-		
 		
 		if (currentTime > 0) {
 			isFirstTime = false;
-			isPlaying = true;
-			isPause = false;
 		}
 		
 		initView();
-		
-		
+				
 	}
 	
 	//初始化界面
@@ -322,7 +323,7 @@ public class PlayerActivity extends Activity {
 	//随机播放
 	public void shuffle(){
 		Intent intent = new Intent(CTL_ACTION);
-		intent.putExtra("contril", 4);
+		intent.putExtra("control", 4);
 		sendBroadcast(intent);
 	}
 	//全部循环
@@ -399,16 +400,9 @@ public class PlayerActivity extends Activity {
 				}
 						
 			}
-			//更改播放图标
-			else if(action.equals(ISPLAYINT_ACTION)){
-				isPlaying = intent.getBooleanExtra("isPlaying", true);
-				if (isPlaying) {
-					playButton.setImageResource(R.drawable.pause);
-				} else {
-					playButton.setImageResource(R.drawable.play);
-					isPause = true;
-				}
-			}
+		
+				
+			
 			
 		}
 			
@@ -421,9 +415,11 @@ public class PlayerActivity extends Activity {
 
 		@Override
 		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-			if(fromUser){
+			if (fromUser) {
+				
 				audioTrackChange(progress);
 			}
+			
 		}
 
 		@Override
@@ -449,6 +445,7 @@ public class PlayerActivity extends Activity {
 		intent.putExtra("progress", progress);
 		intent.setPackage(getPackageName());
 		startService(intent);
+		
 	}
 	
 	
@@ -476,13 +473,14 @@ public class PlayerActivity extends Activity {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		unregisterReceiver(playerReceiver);
+		
 	}
 
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
+		unregisterReceiver(playerReceiver);
 	}
 	
 
