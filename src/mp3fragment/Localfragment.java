@@ -14,6 +14,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +22,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView.FindListener;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -37,6 +39,7 @@ public class Localfragment extends Fragment{
 	
 	private ImageButton playButton;//播放
 	private TextView musicTitle;//歌名
+	private ImageView musicAblum;
 	
 	private boolean isFirstTime = true;   
 
@@ -61,6 +64,8 @@ public class Localfragment extends Fragment{
 		//获取父控件
 		musicTitle = (TextView)activity.findViewById(R.id.music_title);
 		playButton = (ImageButton)activity.findViewById(R.id.play_music);
+		musicAblum = (ImageView)activity.findViewById(R.id.music_album);
+		
 		//接收列表
 		list = new ArrayList<Integer>();
 		// 需要获取SD卡权限，再获取歌曲对象集合
@@ -159,6 +164,9 @@ public class Localfragment extends Fragment{
 			playButton.setImageResource(R.drawable.pause);
 			Mp3Info mp3Info = mp3Infos.get(position);
 			musicTitle.setText(mp3Info.getTitle());
+			Bitmap bitmap = MediaUtils.getArtwork(activity, mp3Info.getId(),
+					mp3Info.getAlbumId(), true, true);// 获取专辑位图对象，为小图
+			musicAblum.setImageBitmap(bitmap); // 这里显示专辑图片
 			Intent intent = new Intent();
 			intent.putExtra("listPosition", 0);
 			intent.putExtra("url", mp3Info.getUrl());

@@ -5,6 +5,7 @@ import java.util.List;
 import com.example.mp3player.R;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -69,6 +70,13 @@ public class MusicListAdapter extends BaseAdapter{
 		viewHolder.musicArtist.setText(mp3Info.getArtist());//显示艺术家
 		viewHolder.musicDuration.setText(MediaUtils.formatTime(mp3Info.getDuration()));//显示时间
 
+		 if(position == pos) {  
+	            viewHolder.albumImage.setImageResource(R.drawable.item);  
+	        } else {  
+	            Bitmap bitmap = MediaUtils.getArtwork(context, mp3Info.getId(),mp3Info.getAlbumId(), true, true);  
+	            viewHolder.albumImage.setImageBitmap(bitmap);  
+	        }  
+		
 		return convertView;
 	}
 	

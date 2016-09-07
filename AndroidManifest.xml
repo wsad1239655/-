@@ -43,7 +43,7 @@
         
     </application>
     
-       <!-- 震动权限 -->
+    <!-- 震动权限 -->
     <uses-permission android:name="android.permission.VIBRATE"/>
     <!-- 读取电话状态权限 -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>

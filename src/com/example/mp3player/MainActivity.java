@@ -3,10 +3,7 @@ package com.example.mp3player;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-
 import adapter.MusicListAdapter;
-import android.R.integer;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -15,7 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SyncStatusObserver;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -24,13 +21,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageButton;
-import android.widget.ListPopupWindow;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 import model.AppConstant;
 import model.Mp3Info;
 import mp3fragment.Localfragment;
@@ -48,6 +42,7 @@ public class MainActivity extends Activity {
 	private ImageButton shuffleButton;//随机
 	private ImageButton nextButton;//下一首
 	private ImageButton musicPlaying;//正在播放
+	private ImageView musicablum;
 	private TextView musicTitle;//歌名
 	private TextView musicDuration;//时长
 	private TextView localList;
@@ -138,6 +133,8 @@ public class MainActivity extends Activity {
 		musicDuration = (TextView)findViewById(R.id.music_duration);
 		localList = (TextView)findViewById(R.id.locallist);
 		netList = (TextView)findViewById(R.id.netlist);		
+		musicablum = (ImageView)findViewById(R.id.music_album);
+	
 	}
 	//注册监听器
 	private void setOnclickListioner(){
@@ -409,6 +406,10 @@ public class MainActivity extends Activity {
 				listPosition = intent.getIntExtra("current", -1);
 				if (listPosition >= 0) {
 					musicTitle.setText(mp3Infos.get(listPosition).getTitle());
+					Mp3Info mp3Info = mp3Infos.get(listPosition);
+					Bitmap bitmap = MediaUtils.getArtwork(MainActivity.this, mp3Info.getId(),
+							mp3Info.getAlbumId(), true, true);// 获取专辑位图对象，为小图
+					musicablum.setImageBitmap(bitmap); // 这里显示专辑图片
 				}
 				
 			}
@@ -417,6 +418,7 @@ public class MainActivity extends Activity {
 			else if(action.equals(LIST_ACTION)){
 				list = (List) intent.getSerializableExtra("list");
 				listPosition = intent.getIntExtra("listPosition", -1);
+				
 				if (list.size()>0) {
 					isFirstTime = false;
 					isPlaying = true;

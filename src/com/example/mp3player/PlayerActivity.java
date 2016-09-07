@@ -418,6 +418,10 @@ public class PlayerActivity extends Activity {
 			if (fromUser) {
 				
 				audioTrackChange(progress);
+				
+				playButton.setImageResource(R.drawable.pause);
+				isPause = false;
+				isPlaying = true;
 			}
 			
 		}
