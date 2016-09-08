@@ -33,13 +33,8 @@ import utils.MediaUtils;
 
 public class MainActivity extends Activity {
 	
-	private ListView mMusiclist;//定义ListView
-	private MusicListAdapter listAdapter;//定义资源适配器
-	private List<Mp3Info> mp3Infos = null;//
-	private ImageButton reverseButton;//上一首
-	private ImageButton repeatButton;//重复
+	private List<Mp3Info> mp3Infos = null;//本地音乐
 	private ImageButton playButton;//播放
-	private ImageButton shuffleButton;//随机
 	private ImageButton nextButton;//下一首
 	private ImageButton musicPlaying;//正在播放
 	private ImageView musicablum;
@@ -47,27 +42,22 @@ public class MainActivity extends Activity {
 	private TextView musicDuration;//时长
 	private TextView localList;
 	private TextView netList;
-	
-	private int repeatState;        //循环标识  
-	private final int isCurrentRepeat = 1; // 单曲循环  
-	private final int isAllRepeat = 2; // 全部循环  
-	private final int isNoneRepeat = 3; // 无重复播放  
-	
+
 	private boolean isFirstTime = true;   
 	private boolean isPlaying; // 正在播放  
 	private boolean isPause; // 暂停  
-	private boolean isNoneShuffle = true; // 顺序播放  
-	private boolean isShuffle = false; // 随机播放  	      
 	private int listPosition = 0;   //标识列表位置 
 	private int currentTime;  //当前播放时间
 	private int duration;  //歌曲长度
+	
 	private static final String fragment1Tag = "fragment1";
 	private static final String fragment2Tag = "fragment2";
+	private FragmentManager manager;
+	private FragmentTransaction transaction;
+	private Fragment fragment1;
+	private Fragment fragment2;
 	
-	FragmentManager manager;
-	FragmentTransaction transaction;
-	Fragment fragment1;
-	Fragment fragment2;
+	private Mp3Info mp3Info;
 	
 	 //一系列动作  
     public static final String UPDATE_ACTION = "com.example.action.UPDATE_ACTION";  
@@ -78,7 +68,7 @@ public class MainActivity extends Activity {
     public static final String SHUFFLE_ACTION = "com.example.action.SHUFFLE_ACTION";
     public static final String LIST_ACTION = "com.example.action.LIST_ACTION";      //记录音乐播放列表
     public static final String ISPLAYINT_ACTION = "com.example.action.ISPLAYINT_ACTION";//更新播放图标
-
+    public static final String NET_MUSIC = "com.example.action.NET_MUSIC";//网络音乐
     
     private MyReceiver myReceiver;
     
@@ -92,7 +82,6 @@ public class MainActivity extends Activity {
 		
 		
 		list = new ArrayList<Integer>();
-		mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); // 需要获取SD卡权限，再获取歌曲对象集合
 //		mMusiclist = (ListView) findViewById(R.id.music_list);
 //		listAdapter = new MusicListAdapter(this, mp3Infos);
 //		mMusiclist.setAdapter(listAdapter);
@@ -111,6 +100,7 @@ public class MainActivity extends Activity {
 		 filter.addAction(SHUFFLE_ACTION);  
 		 filter.addAction(LIST_ACTION);
 		 filter.addAction(ISPLAYINT_ACTION);
+		 filter.addAction(NET_MUSIC);
 		 registerReceiver(myReceiver, filter);
 		
 		 //创建fragment1并显示列表布局
@@ -191,7 +181,6 @@ public class MainActivity extends Activity {
 						isPause = false;
 						isPlaying = true;
 						
-					
 					}
 				}
 				
@@ -318,16 +307,23 @@ public class MainActivity extends Activity {
 //		
 //	}
 	
-	//给列表的子View增加菜单项
-	private class  MusicListItemContextMenuListener implements OnCreateContextMenuListener{
-
-		@Override
-		public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-			
-		}
-		
-	}
+//	//给列表的子View增加菜单项
+//	private class  MusicListItemContextMenuListener implements OnCreateContextMenuListener{
+//
+//		@Override
+//		public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+//			
+//		}
+//		
+//	}
+//	
 	
+//	
+//	//设置子View的菜单项
+//	public void MisicListItemDialog(){
+//			
+//	}
+//	
 	//下一首
 	public void next(){
 		if (listPosition < mp3Infos.size() - 1) {
@@ -360,28 +356,6 @@ public class MainActivity extends Activity {
 	}
 
 	
-	//正在播放的音乐
-	public void playMusic(int listposition){
-		if(mp3Infos != null){
-			Mp3Info mp3Info = mp3Infos.get(listposition);
-			musicTitle.setText(mp3Info.getTitle());
-			Intent intent = new Intent(MainActivity.this, PlayerActivity.class);
-			intent.putExtra("title", mp3Info.getTitle());
-			intent.putExtra("url", mp3Info.getUrl());
-			intent.putExtra("artist", mp3Info.getArtist());
-			intent.putExtra("listPosition", listPosition);  
-			intent.putExtra("currentTime", currentTime);  
-			intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);  
-            startActivity(intent);  
-		}
-		
-	}
-	
-	//设置子View的菜单项
-	public void MisicListItemDialog(){
-			
-	}
-	
 	
 	
 	//定义一个广播接收器，接收service返回的广播
@@ -404,7 +378,7 @@ public class MainActivity extends Activity {
 			//点击上一首下一首返回的歌曲位置
 			else if (action.equals(UPDATE_ACTION)) {
 				listPosition = intent.getIntExtra("current", -1);
-				if (listPosition >= 0) {
+				if (listPosition >= 0 && listPosition <= mp3Infos.size()-1) {
 					musicTitle.setText(mp3Infos.get(listPosition).getTitle());
 					Mp3Info mp3Info = mp3Infos.get(listPosition);
 					Bitmap bitmap = MediaUtils.getArtwork(MainActivity.this, mp3Info.getId(),
@@ -418,7 +392,8 @@ public class MainActivity extends Activity {
 			else if(action.equals(LIST_ACTION)){
 				list = (List) intent.getSerializableExtra("list");
 				listPosition = intent.getIntExtra("listPosition", -1);
-				
+				mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); 
+								
 				if (list.size()>0) {
 					isFirstTime = false;
 					isPlaying = true;
@@ -438,12 +413,16 @@ public class MainActivity extends Activity {
 					
 				}
 			}
+			//得到网络音乐列表
+			else if (action.equals(NET_MUSIC)) {
+				mp3Infos = (List<Mp3Info>) intent.getSerializableExtra("listSearchResult");
+				listPosition = intent.getIntExtra("listPosition", -1);
+			}
 			
 			
 		}
 		
 	}
-	
 	
 	@Override
 	protected void onDestroy() {

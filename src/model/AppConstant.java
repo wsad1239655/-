@@ -10,6 +10,7 @@ public class AppConstant {
 		public static final int NEXT_MSG = 6;		//下一首
 		public static final int PROGRESS_CHANGE = 7;//进度改变
 		public static final int PLAYING_MSG = 8;	//正在播放
+		public static final int NET_MSG = 9;	//网络音乐
 	}
 
 }

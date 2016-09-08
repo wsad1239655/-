@@ -1,17 +1,58 @@
 package model;
 
-public class Mp3Info {
-	private long id; // 歌曲ID 3
-	private String title; // 歌曲名称 0
-	private String album; // 专辑 7
-	private long albumId;//专辑ID 6
-	private String displayName; //显示名称 4
-	private String artist; // 歌手名称 2
-	private long duration; // 歌曲时长 1
-	private long size; // 歌曲大小 8
-	private String url; // 歌曲路径 5
+import java.io.Serializable;
+
+public class Mp3Info implements Serializable{
+	private long id; // 歌曲ID
+	private String title; // 歌曲名称 
+	private String album; // 专辑 
+	private long albumId;//专辑ID 
+	private String displayName; //显示名称 
+	private String artist; // 歌手名称 
+	private long duration; // 歌曲时长 
+	private long size; // 歌曲大小 
+	private String url; // 歌曲路径 
 	private String lrcTitle; // 歌词名称
 	private String lrcSize; // 歌词大小 
+	
+	private String albumName;//专辑名
+	private String smallAlumUrl;//小图
+	private String bigAlumUrl;//大图
+	private String musicId;//歌曲ID
+	private String lrcUrl;//歌词地址
+	
+	
+	public String getAlbumName() {
+		return albumName;
+	}
+	public void setAlbumName(String albumName) {
+		this.albumName = albumName;
+	}
+	public String getSmallAlumUrl() {
+		return smallAlumUrl;
+	}
+	public void setSmallAlumUrl(String smallAlumUrl) {
+		this.smallAlumUrl = smallAlumUrl;
+	}
+	public String getBigAlumUrl() {
+		return bigAlumUrl;
+	}
+	public void setBigAlumUrl(String bigAlumUrl) {
+		this.bigAlumUrl = bigAlumUrl;
+	}
+	public String getMusicId() {
+		return musicId;
+	}
+	public void setMusicId(String musicId) {
+		this.musicId = musicId;
+	}
+	public String getLrcUrl() {
+		return lrcUrl;
+	}
+	public void setLrcUrl(String lrcUrl) {
+		this.lrcUrl = lrcUrl;
+	}
+	
 	@Override
 	public String toString() {
 		return "Mp3Info [id=" + id + ", title=" + title + ", album=" + album + ", albumId=" + albumId + ", displayName="

@@ -4,12 +4,52 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
     
-    <TextView 
-        android:id="@+id/netlist"
-        android:layout_width="wrap_content"
+     <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="49dp"
+        android:layout_marginLeft="16dp"
+        >
+
+        <EditText
+            android:id="@+id/edt_search"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@null"
+            android:drawableLeft="@drawable/search"
+            android:drawablePadding="8dp"
+            android:hint="搜索歌曲，歌手等"
+            android:singleLine="true"
+            android:textSize="17sp"
+            />
+
+        <Button
+            android:id="@+id/bt_online_search"
+            android:layout_width="60dp"
+            android:layout_height="49dp"
+            android:layout_alignParentRight="true"
+            android:text="搜索"
+            android:background="#00000000"
+            android:textColor="#00BFFF"
+            android:textSize="20sp"
+            />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/edt_search"
+            android:background="#00BFFF"
+            android:layout_marginRight="16dp"
+            />
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/lv_search_list"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="搜索与下载音乐"
-        />
+        android:dividerHeight="0.1dp" 
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp">
+    </ListView>
     
     
 </LinearLayout>

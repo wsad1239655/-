@@ -39,7 +39,7 @@ public class Localfragment extends Fragment{
 	
 	private ImageButton playButton;//播放
 	private TextView musicTitle;//歌名
-	private ImageView musicAblum;
+	private ImageView musicAblum;//专辑
 	
 	private boolean isFirstTime = true;   
 
@@ -164,11 +164,11 @@ public class Localfragment extends Fragment{
 			playButton.setImageResource(R.drawable.pause);
 			Mp3Info mp3Info = mp3Infos.get(position);
 			musicTitle.setText(mp3Info.getTitle());
-			Bitmap bitmap = MediaUtils.getArtwork(activity, mp3Info.getId(),
-					mp3Info.getAlbumId(), true, true);// 获取专辑位图对象，为小图
+			// 获取专辑位图对象，为小图
+			Bitmap bitmap = MediaUtils.getArtwork(activity, mp3Info.getId(),mp3Info.getAlbumId(), true, true);
 			musicAblum.setImageBitmap(bitmap); // 这里显示专辑图片
+			
 			Intent intent = new Intent();
-			intent.putExtra("listPosition", 0);
 			intent.putExtra("url", mp3Info.getUrl());
 			intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);
 			intent.setPackage(activity.getPackageName());
