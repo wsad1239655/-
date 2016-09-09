@@ -144,8 +144,15 @@ public class PlayerService extends Service{
 		path = intent.getStringExtra("url");
 		current = intent.getIntExtra("listPosition", -1);
 		msg = intent.getIntExtra("MSG", 0);
+		//未优化，线程过多容易卡死，需线程池
 		if (msg == AppConstant.PlayerMsg.PLAY_MSG) {
-			play(0);
+			new Thread(new Runnable() {
+				
+				public void run() {
+					// TODO Auto-generated method stub
+					play(0);
+				}
+			}).start();
 		}
 		else if (msg == AppConstant.PlayerMsg.PAUSE_MSG) {
 			pause();
@@ -168,6 +175,16 @@ public class PlayerService extends Service{
 		}
 		else if (msg == AppConstant.PlayerMsg.PLAYING_MSG) {
 			handler.sendEmptyMessage(1);
+		}
+		else if (msg == AppConstant.PlayerMsg.NET_MSG) {
+			new Thread(new Runnable() {
+				
+				public void run() {
+					// TODO Auto-generated method stub
+					play(0);
+				}
+			}).start();
+			
 		}
 		
 		

@@ -50,6 +50,8 @@ public class NetFragment extends Fragment{
 	private ImageView musicAblum;//专辑
 	
 	public static final String NET_MUSIC = "com.example.action.NET_MUSIC";//网络音乐
+
+	
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -119,23 +121,11 @@ public class NetFragment extends Fragment{
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View arg1, final int arg2,
 					long arg3) {
-				//更改图标
-				Mp3Info mp3Info = listSearchResult.get(arg2);
-				playButton.setImageResource(R.drawable.pause);
-				musicTitle.setText(mp3Info.getTitle());		
-				// 获取专辑位图对象，为小图
-				ImageUtils.disPlay(mp3Info.getSmallAlumUrl(), musicAblum);
-				//建立线程，读取网址进行在线播放
-				new Thread(new Runnable() {
-					
-					@Override
-					public void run() {
-						
-						play(arg2);
-						
-					}
-				}).start();
-		
+				
+				
+				
+				play(arg2);
+				
 				
 				//发送广播，将得到的音乐列表发送到主线程
 				Intent intent2 = new Intent();
@@ -150,6 +140,11 @@ public class NetFragment extends Fragment{
 	//播放
 	public void play(int position){
 		Mp3Info mp3Info = listSearchResult.get(position);
+		//更改图标
+		playButton.setImageResource(R.drawable.pause);
+		musicTitle.setText(mp3Info.getTitle());		
+		// 获取专辑位图对象，为小图
+		ImageUtils.disPlay(mp3Info.getSmallAlumUrl(), musicAblum);
 		Intent intent = new Intent();
 		intent.putExtra("url", mp3Info.getUrl());
 		intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);
@@ -158,7 +153,7 @@ public class NetFragment extends Fragment{
 	}
 	
 	
-
+	//将线程中得到的搜索结果设置资源适配器，并传送给主线程处理
 	private Handler mHandler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {

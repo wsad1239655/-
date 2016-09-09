@@ -166,11 +166,10 @@ public class Localfragment extends Fragment{
 			musicTitle.setText(mp3Info.getTitle());
 			// 获取专辑位图对象，为小图
 			Bitmap bitmap = MediaUtils.getArtwork(activity, mp3Info.getId(),mp3Info.getAlbumId(), true, true);
-			musicAblum.setImageBitmap(bitmap); // 这里显示专辑图片
-			
+			musicAblum.setImageBitmap(bitmap); // 这里显示专辑图片		
 			Intent intent = new Intent();
 			intent.putExtra("url", mp3Info.getUrl());
-			intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);
+			intent.putExtra("MSG", AppConstant.PlayerMsg.NET_MSG);
 			intent.setPackage(activity.getPackageName());
 			activity.startService(intent);
 		}
