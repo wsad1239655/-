@@ -117,13 +117,25 @@ public class NetFragment extends Fragment{
 		lvSearchReasult.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+			public void onItemClick(AdapterView<?> arg0, View arg1, final int arg2,
 					long arg3) {
-				
-				
-				
-				play(arg2);
-				
+				//更改图标
+				Mp3Info mp3Info = listSearchResult.get(arg2);
+				playButton.setImageResource(R.drawable.pause);
+				musicTitle.setText(mp3Info.getTitle());		
+				// 获取专辑位图对象，为小图
+				ImageUtils.disPlay(mp3Info.getSmallAlumUrl(), musicAblum);
+				//建立线程，读取网址进行在线播放
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						
+						play(arg2);
+						
+					}
+				}).start();
+		
 				
 				//发送广播，将得到的音乐列表发送到主线程
 				Intent intent2 = new Intent();
@@ -137,12 +149,7 @@ public class NetFragment extends Fragment{
 	
 	//播放
 	public void play(int position){
-		playButton.setImageResource(R.drawable.pause);
 		Mp3Info mp3Info = listSearchResult.get(position);
-		musicTitle.setText(mp3Info.getTitle());		
-		// 获取专辑位图对象，为小图
-		ImageUtils.disPlay(mp3Info.getSmallAlumUrl(), musicAblum);
-
 		Intent intent = new Intent();
 		intent.putExtra("url", mp3Info.getUrl());
 		intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);

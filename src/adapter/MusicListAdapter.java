@@ -55,7 +55,7 @@ public class MusicListAdapter extends BaseAdapter{
 			convertView = LayoutInflater.from(context).inflate(R.layout.music_list_item_layout, null);
 			viewHolder.albumImage = (ImageView) convertView.findViewById(R.id.albumImage);
 			viewHolder.musicArtist = (TextView) convertView.findViewById(R.id.music_artist);
-			viewHolder.musicTitle = (TextView)convertView.findViewById(R.id.music_title);
+			viewHolder.musicTitle = (TextView)convertView.findViewById(R.id.music_title1);
 			viewHolder.musicDuration = (TextView)convertView.findViewById(R.id.music_duration);
 			convertView.setTag(viewHolder);
 		}

@@ -82,6 +82,7 @@ public class MainActivity extends Activity {
 		
 		
 		list = new ArrayList<Integer>();
+		mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); 
 //		mMusiclist = (ListView) findViewById(R.id.music_list);
 //		listAdapter = new MusicListAdapter(this, mp3Infos);
 //		mMusiclist.setAdapter(listAdapter);
@@ -213,7 +214,10 @@ public class MainActivity extends Activity {
 				 
 			case R.id.locallist:
 				//隐藏fragment2，显示fragment1
-				transaction.hide(fragment2);				
+				if (fragment2 != null) {
+					
+					transaction.hide(fragment2);				
+				}
 				transaction.show(fragment1);				
 				transaction.commit();				
 				break;	 
@@ -329,6 +333,7 @@ public class MainActivity extends Activity {
 		if (listPosition < mp3Infos.size() - 1) {
 			listPosition++;
 			//放入当前的播放位置在列表
+			mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); 
 			list.add(listPosition);
 			Mp3Info mp3Info = mp3Infos.get(listPosition);
 			musicTitle.setText(mp3Info.getTitle());
