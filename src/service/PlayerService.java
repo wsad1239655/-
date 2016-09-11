@@ -82,10 +82,16 @@ public class PlayerService extends Service{
 
 	@Override
 	public void onCreate() {
-		
+		//初始化参数
 		mediaPlayer = new MediaPlayer();  
         mp3Infos = MediaUtils.getMp3Infos(PlayerService.this);  
           
+        //注册监听器
+        musicReceiver = new MusicReceiver();  
+        IntentFilter filter = new IntentFilter();  
+        filter.addAction(CTL_ACTION);  
+        filter.addAction(SHOW_LRC);
+        registerReceiver(musicReceiver, filter);  
         
         // 设置音乐播放完成时的监听器 
            
@@ -95,18 +101,19 @@ public class PlayerService extends Service{
             public void onCompletion(MediaPlayer mp) {  
                 if (status == 1) { // 单曲循环  
                     mediaPlayer.start();  
-                } else if (status == 2) { // 全部循环  
-                    current++;  
-                    if(current > mp3Infos.size() - 1) {  //变为第一首的位置继续播放  
-                        current = 0;  
-                    }  
-                    Intent sendIntent = new Intent(UPDATE_ACTION);  
-                    sendIntent.putExtra("current", current);  
-                    // 发送广播，将被Activity组件中的BroadcastReceiver接收到  
-                    sendBroadcast(sendIntent);  
-                    path = mp3Infos.get(current).getUrl();  
-                    play(0);  
-                } else if (status == 3) { // 顺序播放  
+                }
+                
+                else if(status == 2) {    //随机播放  
+            	current = getRandomIndex(mp3Infos.size() - 1);  
+            	System.out.println("currentIndex ->" + current);  
+            	Intent sendIntent = new Intent(UPDATE_ACTION);  
+            	sendIntent.putExtra("current", current);  
+            	// 发送广播，将被Activity组件中的BroadcastReceiver接收到  
+            	sendBroadcast(sendIntent);  
+            	path = mp3Infos.get(current).getUrl();  
+            	play(0);  
+                }  
+                else if (status == 3) { // 顺序播放  
                     current++;  //下一首位置  
                     if (current <= mp3Infos.size() - 1) {  
                         Intent sendIntent = new Intent(UPDATE_ACTION);  
@@ -123,24 +130,10 @@ public class PlayerService extends Service{
                         // 发送广播，将被Activity组件中的BroadcastReceiver接收到  
                         sendBroadcast(sendIntent);  
                     }  
-                } else if(status == 4) {    //随机播放  
-                    current = getRandomIndex(mp3Infos.size() - 1);  
-                    System.out.println("currentIndex ->" + current);  
-                    Intent sendIntent = new Intent(UPDATE_ACTION);  
-                    sendIntent.putExtra("current", current);  
-                    // 发送广播，将被Activity组件中的BroadcastReceiver接收到  
-                    sendBroadcast(sendIntent);  
-                    path = mp3Infos.get(current).getUrl();  
-                    play(0);  
-                }  
+                 }
             }  
         });  
-  
-        musicReceiver = new MusicReceiver();  
-        IntentFilter filter = new IntentFilter();  
-        filter.addAction(CTL_ACTION);  
-        filter.addAction(SHOW_LRC);
-        registerReceiver(musicReceiver, filter);  
+        
 	}
 	
 	//定义一个随机抽取的方法
@@ -245,11 +238,42 @@ public class PlayerService extends Service{
 	}
 	//下一首
 	private void next(){
+		 if (status == 1) { // 单曲循环  
+			 play(0);
+         }
+         
+         else if(status == 2) {    //随机播放  
+     	current = getRandomIndex(mp3Infos.size() - 1);  
+     	System.out.println("currentIndex ->" + current);  
+     	Intent sendIntent = new Intent(UPDATE_ACTION);  
+     	sendIntent.putExtra("current", current);  
+     	// 发送广播，将被Activity组件中的BroadcastReceiver接收到  
+     	sendBroadcast(sendIntent);  
+     	path = mp3Infos.get(current).getUrl();  
+     	play(0);  
+         }  
+         else if (status == 3) { // 顺序播放  
+             if (current <= mp3Infos.size() - 1) {  
+                 Intent sendIntent = new Intent(UPDATE_ACTION);  
+                 sendIntent.putExtra("current", current);  
+                 // 发送广播，将被Activity组件中的BroadcastReceiver接收到  
+                 sendBroadcast(sendIntent);  
+                 path = mp3Infos.get(current).getUrl();  
+                 play(0);  
+             }else {  
+                 mediaPlayer.seekTo(0);  
+                 current = 0;  
+                 Intent sendIntent = new Intent(UPDATE_ACTION);  
+                 sendIntent.putExtra("current", current);  
+                 // 发送广播，将被Activity组件中的BroadcastReceiver接收到  
+                 sendBroadcast(sendIntent);  
+             }  
+          }
+		
 		Intent sendIntent = new Intent(UPDATE_ACTION);  
         sendIntent.putExtra("current", current);  
         // 发送广播，将被Activity组件中的BroadcastReceiver接收到  
         sendBroadcast(sendIntent);  
-        play(0);
 	}
 	//停止播放
 	private void stop(){
@@ -358,15 +382,12 @@ public class PlayerService extends Service{
 			case 1:  
                 status = 1; // 将播放状态置为1表示：单曲循环  
                 break;  
-            case 2:  
-                status = 2; //将播放状态置为2表示：全部循环  
-                break;  
+			case 2:  
+				status = 2; //将播放状态置为2表示：随机播放  
+				break;
             case 3:  
                 status = 3; //将播放状态置为3表示：顺序播放  
                 break;  
-            case 4:  
-                status = 4; //将播放状态置为4表示：随机播放  
-                break;
 			}
 			
 			String action = intent.getAction();

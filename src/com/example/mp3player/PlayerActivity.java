@@ -59,13 +59,11 @@ public class PlayerActivity extends Activity {
 	
 	private int repeatState;  
 	private final int isCurrentRepeat = 1; // 单曲循环  
-	private final int isAllRepeat = 2;      // 全部循环  
-	private final int isNoneRepeat = 3;     // 无重复播放  
+	private final int isShuffle = 2;   	// 随机播放  
+	private final int isNoneRepeat = 3;     // 顺序播放 
 	private boolean isPlaying;              // 正在播放  
 	private boolean isFirstTime = true;
 	private boolean isPause;                // 暂停  
-	private boolean isNoneShuffle;           // 顺序播放  
-	private boolean isShuffle;          // 随机播放 
 	
 	private PlayerReceiver playerReceiver;
 	
@@ -99,7 +97,7 @@ public class PlayerActivity extends Activity {
 		//初始化
 		findViewById();
 		
-		
+		repeatState = isNoneRepeat; // 初始状态为无重复播放状态
 		
 		
 		
@@ -323,28 +321,22 @@ public class PlayerActivity extends Activity {
 				//单曲循环
 				if(repeatState == isNoneRepeat){
 					repeat_one();
-					shuffleButton.setClickable(false);
+					repeatState = isCurrentRepeat;
 					Toast.makeText(PlayerActivity.this, R.string.repeat_current, Toast.LENGTH_SHORT).show();
 				}
 				
-				//顺序播放
-				else if (repeatState == isAllRepeat) {
-					repeat_none();
-					shuffleButton.setClickable(true);
-					Toast.makeText(PlayerActivity.this, R.string.repeat_none, Toast.LENGTH_SHORT).show();
-				}
 				//随机播放
-				else if(isNoneShuffle){
-					Toast.makeText(PlayerActivity.this, R.string.shuffle, Toast.LENGTH_SHORT).show();
-					isNoneShuffle = false;
-					isShuffle = true;
+				else if(repeatState == isCurrentRepeat ){
 					shuffle();
-					
+					repeatState = isShuffle;
+					Toast.makeText(PlayerActivity.this, R.string.shuffle, Toast.LENGTH_SHORT).show();					
 				}
-				else if (isShuffle) {
-					Toast.makeText(PlayerActivity.this, R.string.shuffle_none, Toast.LENGTH_SHORT).show();
-					isNoneShuffle = true;
-					isShuffle = false;
+				
+				//顺序播放
+				else if (repeatState == isShuffle) {
+					repeat_none();
+					repeatState = isNoneRepeat;
+					Toast.makeText(PlayerActivity.this, R.string.repeat_none, Toast.LENGTH_SHORT).show();
 				}
 				break;
 
@@ -379,12 +371,6 @@ public class PlayerActivity extends Activity {
 		startService(intent);
 		
 	}
-	//顺序播放
-	public void repeat_none(){
-		Intent intent = new Intent(CTL_ACTION);
-		intent.putExtra("control", 3);
-		sendBroadcast(intent);
-	}
 	//单曲循环
 	public void repeat_one(){
 		Intent intent = new Intent(CTL_ACTION);
@@ -394,15 +380,16 @@ public class PlayerActivity extends Activity {
 	//随机播放
 	public void shuffle(){
 		Intent intent = new Intent(CTL_ACTION);
-		intent.putExtra("control", 4);
-		sendBroadcast(intent);
-	}
-	//全部循环
-	public void repeat_all(){
-		Intent intent = new Intent(CTL_ACTION);
 		intent.putExtra("control", 2);
 		sendBroadcast(intent);
 	}
+	//顺序播放
+	public void repeat_none(){
+		Intent intent = new Intent(CTL_ACTION);
+		intent.putExtra("control", 3);
+		sendBroadcast(intent);
+	}
+	
 	//上一首
 		public void reverse(){
 			if (listPosition >  0) {

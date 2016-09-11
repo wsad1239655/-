@@ -115,6 +115,7 @@ public class MainActivity extends Activity {
 		 transaction.add(R.id.fragment_layout, fragment1, fragment1Tag);
 		 transaction.commit();
 		 
+
 	}
 	
 	//定义view的Id
@@ -157,6 +158,9 @@ public class MainActivity extends Activity {
 			
 			//播放音乐	
 			case R.id.play_music:
+				if (currentTime > 0) {
+					isFirstTime = false;
+				}
 				if(isFirstTime){
 					isFirstTime = false;
 					isPlaying = true;
