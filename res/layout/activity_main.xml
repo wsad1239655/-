@@ -74,6 +74,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
 	    >
+        
+	    
 	    
 	</FrameLayout>
 	
@@ -98,8 +100,9 @@
         
         <LinearLayout 
              android:id="@+id/music_about_layout" 
-             android:layout_width="wrap_content"
+             android:layout_width="0dp"
              android:layout_height="match_parent"
+             android:layout_weight="1"
             >
             
             
@@ -134,7 +137,6 @@
        <RelativeLayout 
            android:layout_width="100dp"
            android:layout_height="wrap_content"
-           android:layout_weight="1"
            >
            
         <ImageButton 

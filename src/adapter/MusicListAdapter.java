@@ -13,6 +13,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import model.Mp3Info;
+import utils.ImageUtils;
 import utils.MediaUtils;
 
 public class MusicListAdapter extends BaseAdapter{
@@ -69,13 +70,12 @@ public class MusicListAdapter extends BaseAdapter{
 		viewHolder.musicTitle.setText(mp3Info.getTitle());//显示标题
 		viewHolder.musicArtist.setText(mp3Info.getArtist());//显示艺术家
 		viewHolder.musicDuration.setText(MediaUtils.formatTime(mp3Info.getDuration()));//显示时间
+		
+		Bitmap bitmap = MediaUtils.getArtwork(context, mp3Info.getId(),mp3Info.getAlbumId(), true, true);  
+		viewHolder.albumImage.setImageBitmap(bitmap);  
 
-		 if(position == pos) {  
-	            viewHolder.albumImage.setImageResource(R.drawable.item);  
-	        } else {  
-	            Bitmap bitmap = MediaUtils.getArtwork(context, mp3Info.getId(),mp3Info.getAlbumId(), true, true);  
-	            viewHolder.albumImage.setImageBitmap(bitmap);  
-	        }  
+	            
+	            
 		
 		return convertView;
 	}

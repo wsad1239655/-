@@ -147,7 +147,7 @@ public class NetFragment extends Fragment{
 		ImageUtils.disPlay(mp3Info.getSmallAlumUrl(), musicAblum);
 		Intent intent = new Intent();
 		intent.putExtra("url", mp3Info.getUrl());
-		intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);
+		intent.putExtra("MSG", AppConstant.PlayerMsg.NET_MSG);
 		intent.setPackage(activity.getPackageName());
 		activity.startService(intent);
 	}

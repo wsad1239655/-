@@ -10,7 +10,7 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.display.SimpleBitmapDisplayer;
 
-public class ImageUtils {
+public class ImageUtils{
 	public static void disPlay(String uri, ImageView image) {
 		DisplayImageOptions options = new DisplayImageOptions.Builder()
 				.imageScaleType(ImageScaleType.IN_SAMPLE_INT)

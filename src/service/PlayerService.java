@@ -1,8 +1,8 @@
 package service;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import com.example.mp3player.MainActivity;
 import com.example.mp3player.PlayerActivity;
 import com.example.mp3player.R;
 
@@ -17,8 +17,13 @@ import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.widget.TextView;
+import android.view.LayoutInflater;
+import android.view.animation.AnimationUtils;
+import android.webkit.WebView.FindListener;
+import custom.LrcProcess;
+import custom.LrcView;
 import model.AppConstant;
+import model.LrcInfo;
 import model.Mp3Info;
 import utils.MediaUtils;
 
@@ -34,6 +39,9 @@ public class PlayerService extends Service{
     private MusicReceiver musicReceiver;  //自定义广播接收器  
     private int currentTime;        //当前播放进度  
     private int duration;           //播放长度  
+	private LrcProcess mLrcProcess;	//歌词处理
+	private List<LrcInfo> lrcList = new ArrayList<LrcInfo>(); //存放歌词列表对象
+	private int index = 0;			//歌词检索值
     
     
 	
@@ -43,6 +51,7 @@ public class PlayerService extends Service{
     public static final String MUSIC_CURRENT = "com.example.action.MUSIC_CURRENT";  //当前音乐播放时间更新动作  
     public static final String MUSIC_DURATION = "com.example.action.MUSIC_DURATION";//新音乐长度更新动作 
     public static final String ISPLAYINT_ACTION = "com.example.action.ISPLAYINT_ACTION";//更新播放图标
+	public static final String SHOW_LRC = "com.example.action.SHOW_LRC";			//通知显示歌词
 
     
     private Handler handler = new Handler(){
@@ -77,7 +86,7 @@ public class PlayerService extends Service{
 		mediaPlayer = new MediaPlayer();  
         mp3Infos = MediaUtils.getMp3Infos(PlayerService.this);  
           
-  
+        
         // 设置音乐播放完成时的监听器 
            
         mediaPlayer.setOnCompletionListener(new OnCompletionListener() {  
@@ -130,6 +139,7 @@ public class PlayerService extends Service{
         musicReceiver = new MusicReceiver();  
         IntentFilter filter = new IntentFilter();  
         filter.addAction(CTL_ACTION);  
+        filter.addAction(SHOW_LRC);
         registerReceiver(musicReceiver, filter);  
 	}
 	
@@ -140,19 +150,14 @@ public class PlayerService extends Service{
     }  
 
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
+	public int onStartCommand(Intent intent, int flags, int startId) {	
+		
 		path = intent.getStringExtra("url");
 		current = intent.getIntExtra("listPosition", -1);
 		msg = intent.getIntExtra("MSG", 0);
 		//未优化，线程过多容易卡死，需线程池
-		if (msg == AppConstant.PlayerMsg.PLAY_MSG) {
-			new Thread(new Runnable() {
-				
-				public void run() {
-					// TODO Auto-generated method stub
-					play(0);
-				}
-			}).start();
+		if (msg == AppConstant.PlayerMsg.PLAY_MSG) {		
+			play(0);
 		}
 		else if (msg == AppConstant.PlayerMsg.PAUSE_MSG) {
 			pause();
@@ -198,6 +203,11 @@ public class PlayerService extends Service{
 	//播放音乐
 	private void play(int currentTime){
 		try {
+			
+			if (PlayerActivity.lrcView != null) {
+				initLrc();
+			}
+
 			mediaPlayer.reset();
 			mediaPlayer.setDataSource(path);
 			mediaPlayer.prepare();
@@ -282,6 +292,63 @@ public class PlayerService extends Service{
 	
 	}
 	
+	
+	/**
+	 * 初始化歌词配置
+	 */
+	public void initLrc(){	
+		
+		mLrcProcess = new LrcProcess();
+		//读取歌词文件
+		mLrcProcess.readLRC(mp3Infos.get(current).getUrl());	
+		//传回处理后的歌词文件
+		lrcList = mLrcProcess.getLrcList();		
+		PlayerActivity.lrcView.setmLrcList(lrcList);
+		//切换带动画显示歌词
+		PlayerActivity.lrcView.setAnimation(AnimationUtils.loadAnimation(PlayerService.this,R.anim.alpha));
+		handler.post(mRunnable);
+	}
+	
+	Runnable mRunnable = new Runnable() {
+		
+		@Override
+		public void run() {
+			PlayerActivity.lrcView.setIndex(lrcIndex());
+			PlayerActivity.lrcView.invalidate();
+			handler.postDelayed(mRunnable, 100);
+		}
+	};
+	
+	/**
+	 * 根据时间获取歌词显示的索引值
+	 * @return
+	 */
+	public int lrcIndex() {
+		if(mediaPlayer.isPlaying()) {
+			currentTime = mediaPlayer.getCurrentPosition();
+			duration = mediaPlayer.getDuration();
+		}
+		if(currentTime < duration) {
+			for (int i = 0; i < lrcList.size(); i++) {
+				if (i < lrcList.size() - 1) {
+					if (currentTime < lrcList.get(i).getLrcTime() && i == 0) {
+						index = i;
+					}
+					if (currentTime > lrcList.get(i).getLrcTime()
+							&& currentTime < lrcList.get(i + 1).getLrcTime()) {
+						index = i;
+					}
+				}
+				if (i == lrcList.size() - 1
+						&& currentTime > lrcList.get(i).getLrcTime()) {
+					index = i;
+				}
+			}
+		}
+		return index;
+	}
+	
+	
 	public class MusicReceiver extends BroadcastReceiver{
 
 		@Override
@@ -302,7 +369,11 @@ public class PlayerService extends Service{
                 break;
 			}
 			
-			
+			String action = intent.getAction();
+			if(action.equals(SHOW_LRC)){
+				current = intent.getIntExtra("listPosition", -1);
+				initLrc();
+			}
 			
 		}
 		

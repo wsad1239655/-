@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +26,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import custom.LrcView;
 import model.AppConstant;
 import model.Mp3Info;
 import mp3fragment.Localfragment;
@@ -42,6 +44,7 @@ public class MainActivity extends Activity {
 	private TextView musicDuration;//时长
 	private TextView localList;
 	private TextView netList;
+	public static LrcView lrcView;
 
 	private boolean isFirstTime = true;   
 	private boolean isPlaying; // 正在播放  
@@ -110,7 +113,6 @@ public class MainActivity extends Activity {
 		 fragment1 = manager.findFragmentByTag(fragment1Tag);
 		 fragment1 = new Localfragment();
 		 transaction.add(R.id.fragment_layout, fragment1, fragment1Tag);
-		 transaction.addToBackStack(null);			 
 		 transaction.commit();
 		 
 	}
@@ -228,7 +230,6 @@ public class MainActivity extends Activity {
 				if (fragment2 == null) {
 					fragment2 = new NetFragment();
 					transaction.add(R.id.fragment_layout, fragment2, fragment2Tag);
-					transaction.addToBackStack(null);
 				} else {
 					transaction.show(fragment2);
 				}

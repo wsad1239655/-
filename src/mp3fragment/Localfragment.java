@@ -83,8 +83,7 @@ public class Localfragment extends Fragment{
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
-				String action = intent.getAction();
-				
+				String action = intent.getAction();			
 				//监听fragment的播放列表与播放位置
 				if(action.equals(LIST_ACTION)){
 					list = (List) intent.getSerializableExtra("list");
@@ -169,7 +168,8 @@ public class Localfragment extends Fragment{
 			musicAblum.setImageBitmap(bitmap); // 这里显示专辑图片		
 			Intent intent = new Intent();
 			intent.putExtra("url", mp3Info.getUrl());
-			intent.putExtra("MSG", AppConstant.PlayerMsg.NET_MSG);
+			intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);
+			intent.putExtra("listPosition", position);
 			intent.setPackage(activity.getPackageName());
 			activity.startService(intent);
 		}

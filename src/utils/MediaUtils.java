@@ -89,7 +89,7 @@ public class MediaUtils {
 		}
 		
 		
-		return BitmapFactory.decodeStream(context.getResources().openRawResource(R.drawable.music), null, options);
+		return BitmapFactory.decodeStream(context.getResources().openRawResource(R.drawable.longmao), null, options);
 		
 	}
 	
@@ -175,8 +175,11 @@ public class MediaUtils {
 				if(small){
 					options.inSampleSize = computeSampleSize(options, 40);
 				} else{
+		
 					options.inSampleSize = computeSampleSize(options, 600);
+			
 				}
+				
 				// 我们得到了缩放比例，现在开始正式读入Bitmap数据
 				options.inJustDecodeBounds = false;
 				options.inDither = false;
