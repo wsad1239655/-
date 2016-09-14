@@ -46,7 +46,6 @@ public class PlayerService extends Service{
 	private List<LrcInfo> lrcList = new ArrayList<LrcInfo>(); //存放歌词列表对象
 	private int index = 0;			//歌词检索值
 	private String lrcUrl;
-	private int flag = 0;
     
     
 	
@@ -161,7 +160,7 @@ public class PlayerService extends Service{
 		if (msg == AppConstant.PlayerMsg.PLAY_MSG) {		
 			play(0);
 			if (PlayerActivity.lrcView != null) {
-				lrcUrl = mp3Infos.get(current).getUrl();
+				lrcUrl = mp3Infos.get(current).getUrl().replace(".mp3", ".lrc");
 				initLrc(lrcUrl);
 			}
 		}
@@ -177,14 +176,14 @@ public class PlayerService extends Service{
 		else if (msg == AppConstant.PlayerMsg.REVERSE_MSG) {
 			reverse();
 			if (PlayerActivity.lrcView != null) {
-				lrcUrl = mp3Infos.get(current).getUrl();
+				lrcUrl = mp3Infos.get(current).getUrl().replace(".mp3", ".lrc");
 				initLrc(lrcUrl);
 			}
 		}
 		else if (msg == AppConstant.PlayerMsg.NEXT_MSG) {
 			next();
 			if (PlayerActivity.lrcView != null) {
-				lrcUrl = mp3Infos.get(current).getUrl();
+				lrcUrl = mp3Infos.get(current).getUrl().replace(".mp3", ".lrc");
 				initLrc(lrcUrl);
 			}
 		}
@@ -196,7 +195,6 @@ public class PlayerService extends Service{
 			handler.sendEmptyMessage(1);
 		}
 		else if (msg == AppConstant.PlayerMsg.NET_MSG) {
-			flag = 1;
 			mp3Infos = (List<Mp3Info>) intent.getSerializableExtra("listSearchResult");
 			current = intent.getIntExtra("current", -1);
 			new Thread(new Runnable() {
@@ -414,17 +412,11 @@ public class PlayerService extends Service{
 			String action = intent.getAction();
 			Bundle bundle = intent.getExtras();
 			if(action.equals(SHOW_LRC)){
-				if (flag == 1) {
-					mp3Infos = (List<Mp3Info>)bundle.getSerializable("listSearchResult");
-					lrcUrl = Environment.getExternalStorageDirectory() + "/Download" + File.separator + mp3Infos.get(current).getTitle() + ".lrc";
-					initLrc(lrcUrl);
-					flag = 0;
-				}
-				else{
-				current = intent.getIntExtra("listPosition", -1);
-				lrcUrl = mp3Infos.get(current).getUrl();
+				mp3Infos = (List<Mp3Info>)bundle.getSerializable("listSearchResult");
+				lrcUrl = Environment.getExternalStorageDirectory() + "/Download" + File.separator + mp3Infos.get(current).getTitle() + ".lrc";
 				initLrc(lrcUrl);
-				}
+				
+				
 			}
 			
 			

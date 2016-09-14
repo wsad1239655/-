@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    
+    android:descendantFocusability="blocksDescendants"
      >
 
     <ImageView
@@ -59,13 +59,15 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <ImageView
+    <ImageButton
         android:id="@+id/more"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:src="@drawable/more"
+        android:focusable="false"
+        android:background="#00000000"
          />
 
 </RelativeLayout>
