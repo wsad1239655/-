@@ -11,9 +11,9 @@ public class Mp3Info implements Serializable{
 	private String artist; // 歌手名称 
 	private long duration; // 歌曲时长 
 	private long size; // 歌曲大小 
-	private String url; // 歌曲路径 
 	private String lrcTitle; // 歌词名称
 	private String lrcSize; // 歌词大小 
+	private String url; // 歌曲路径 
 	
 	private String albumName;//专辑名
 	private String smallAlumUrl;//小图

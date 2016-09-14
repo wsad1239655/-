@@ -1,15 +1,21 @@
 package mp3fragment;
 
+import java.io.File;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.example.mp3player.MainActivity;
+import com.example.mp3player.PlayerActivity;
 import com.example.mp3player.R;
 
 import adapter.SearchResultListAdapter;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -18,6 +24,7 @@ import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -30,6 +37,7 @@ import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import model.AppConstant;
 import model.Mp3Info;
+import utils.FileUtils;
 import utils.ImageUtils;
 import utils.MediaUtils;
 import utils.OnLoadSearchFinishListener;
@@ -48,6 +56,7 @@ public class NetFragment extends Fragment{
 	private ImageButton playButton;//播放
 	private TextView musicTitle;//歌名
 	private ImageView musicAblum;//专辑
+	private ImageView playerMusicAlbum;
 	
 	public static final String NET_MUSIC = "com.example.action.NET_MUSIC";//网络音乐
 
@@ -58,14 +67,13 @@ public class NetFragment extends Fragment{
 		// TODO Auto-generated method stub
 		view = inflater.inflate(R.layout.net_fragment, container, false);
 		//接收MainActivity
-		activity = ((MainActivity)getActivity());
+		activity = (MainActivity)getActivity();
 		ImageUtils.initImageLoader(activity);// ImageLoader初始化
 		init();
 		//获取父控件
 		musicTitle = (TextView)activity.findViewById(R.id.music_title);
 		playButton = (ImageButton)activity.findViewById(R.id.play_music);
 		musicAblum = (ImageView)activity.findViewById(R.id.music_album);
-				
 		
 		return view;
 		
@@ -83,9 +91,10 @@ public class NetFragment extends Fragment{
 			@Override
 			public void onClick(View v) {
 				dialog.show();// 进入加载状态，显示进度条
+				//隐藏软键盘
+				InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+				inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
 				new Thread(new Runnable() {
-
-					
 					//输入文字，得到搜索结果，jsoup获取歌曲ID，通过ID获取歌曲信息，将信息放入musicList
 					@Override
 					public void run() {
@@ -101,7 +110,6 @@ public class NetFragment extends Fragment{
 										mHandler.sendMessage(msg);
 										listSearchResult = musicList;
 									}
-
 									@Override
 									public void onLoadFiler() {
 										dialog.dismiss();// 加载失败，取消进度条
@@ -116,26 +124,71 @@ public class NetFragment extends Fragment{
 			}
 		});
 		
-		lvSearchReasult.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, final int arg2,
-					long arg3) {
-				
-				
-				
-				play(arg2);
-				
-				
-				//发送广播，将得到的音乐列表发送到主线程
-				Intent intent2 = new Intent();
-				intent2.setAction(NET_MUSIC);
-				intent2.putExtra("listSearchResult", (Serializable)listSearchResult);
-				intent2.putExtra("listPosition", arg2);
-				activity.sendBroadcast(intent2);
-			}
-		});
+		//监听列表
+		lvSearchReasult.setOnItemClickListener(new LvSearchReasultListener());
 	}
+	
+	
+	private class LvSearchReasultListener implements OnItemClickListener{
+
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+			play(position);
+			
+			String url = listSearchResult.get(position).getLrcUrl();
+			String name = listSearchResult.get(position).getTitle();
+			DownloadLrc downloadLrc = new DownloadLrc(url,name);
+			Thread thread = new Thread(downloadLrc);
+			thread.start();
+		
+			//发送广播，将得到的音乐列表搜索结果与专辑发送到线程
+			Intent intent2 = new Intent();
+			intent2.setAction(NET_MUSIC);
+			intent2.putExtra("listSearchResult", (Serializable)listSearchResult);
+			intent2.putExtra("listPosition", position);
+			intent2.putExtra("albumUrl", listSearchResult.get(position).getBigAlumUrl());
+			activity.sendBroadcast(intent2);
+		}
+		
+	}
+	
+	class DownloadLrc implements Runnable{
+		
+		private String url;
+		private String fileName;
+		public DownloadLrc(String url,String fileName) {
+			this.url = url;
+			this.fileName = fileName;
+		}
+		@Override
+		public void run() {
+			//下载歌词
+			InputStream inputStream = null;
+			try {
+				FileUtils fileUtils = new FileUtils();
+				URL url1 = new URL(url);
+				HttpURLConnection urlConn = (HttpURLConnection)url1.openConnection();
+				inputStream = urlConn.getInputStream();
+				File resultFile = fileUtils.write2SDFromInput("/Download", fileName + ".lrc", inputStream);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			finally{
+				try {
+					inputStream.close();
+				}
+				
+			catch (Exception e) {
+					e.printStackTrace();
+				}
+			
+			}
+		}
+		
+	}
+	
+	
+	
 	
 	//播放
 	public void play(int position){
@@ -148,6 +201,8 @@ public class NetFragment extends Fragment{
 		Intent intent = new Intent();
 		intent.putExtra("url", mp3Info.getUrl());
 		intent.putExtra("MSG", AppConstant.PlayerMsg.NET_MSG);
+		intent.putExtra("listSearchResult", (Serializable)listSearchResult);
+		intent.putExtra("current", position);
 		intent.setPackage(activity.getPackageName());
 		activity.startService(intent);
 	}

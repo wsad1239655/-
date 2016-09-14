@@ -31,6 +31,7 @@ import model.AppConstant;
 import model.Mp3Info;
 import mp3fragment.Localfragment;
 import mp3fragment.NetFragment;
+import utils.ImageUtils;
 import utils.MediaUtils;
 
 public class MainActivity extends Activity {
@@ -52,6 +53,7 @@ public class MainActivity extends Activity {
 	private int listPosition = 0;   //标识列表位置 
 	private int currentTime;  //当前播放时间
 	private int duration;  //歌曲长度
+	private String bigAlumUrl; //歌曲专辑大图
 	
 	private static final String fragment1Tag = "fragment1";
 	private static final String fragment2Tag = "fragment2";
@@ -158,9 +160,7 @@ public class MainActivity extends Activity {
 			
 			//播放音乐	
 			case R.id.play_music:
-				if (currentTime > 0) {
-					isFirstTime = false;
-				}
+				
 				if(isFirstTime){
 					isFirstTime = false;
 					isPlaying = true;
@@ -256,7 +256,9 @@ public class MainActivity extends Activity {
 		 intent.putExtra("artist", mp3Info.getArtist());  
 		 intent.putExtra("listPosition", listPosition);  
 		 intent.putExtra("currentTime", currentTime);  
-		 intent.putExtra("duration", duration);  
+		 intent.putExtra("duration", duration);
+		 intent.putExtra("bigAlumUrl", bigAlumUrl);
+		 intent.putExtra("listSearchResult", (Serializable)mp3Infos);
 		 intent.putExtra("MSG", AppConstant.PlayerMsg.PLAYING_MSG);
 		 if (isPlaying) {
 			intent.putExtra("isPlaying", true);
@@ -402,7 +404,8 @@ public class MainActivity extends Activity {
 			else if(action.equals(LIST_ACTION)){
 				list = (List) intent.getSerializableExtra("list");
 				listPosition = intent.getIntExtra("listPosition", -1);
-				mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); 
+				mp3Infos = MediaUtils.getMp3Infos(MainActivity.this);
+				bigAlumUrl = null;
 								
 				if (list.size()>0) {
 					isFirstTime = false;
@@ -427,6 +430,7 @@ public class MainActivity extends Activity {
 			else if (action.equals(NET_MUSIC)) {
 				mp3Infos = (List<Mp3Info>) intent.getSerializableExtra("listSearchResult");
 				listPosition = intent.getIntExtra("listPosition", -1);
+				bigAlumUrl = intent.getStringExtra("albumUrl");
 			}
 			
 			

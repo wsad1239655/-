@@ -1,5 +1,6 @@
 package service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +15,8 @@ import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -42,6 +45,8 @@ public class PlayerService extends Service{
 	private LrcProcess mLrcProcess;	//歌词处理
 	private List<LrcInfo> lrcList = new ArrayList<LrcInfo>(); //存放歌词列表对象
 	private int index = 0;			//歌词检索值
+	private String lrcUrl;
+	private int flag = 0;
     
     
 	
@@ -52,6 +57,7 @@ public class PlayerService extends Service{
     public static final String MUSIC_DURATION = "com.example.action.MUSIC_DURATION";//新音乐长度更新动作 
     public static final String ISPLAYINT_ACTION = "com.example.action.ISPLAYINT_ACTION";//更新播放图标
 	public static final String SHOW_LRC = "com.example.action.SHOW_LRC";			//通知显示歌词
+	public static final String NET_MUSIC = "com.example.action.NET_MUSIC";//网络音乐
 
     
     private Handler handler = new Handler(){
@@ -91,6 +97,7 @@ public class PlayerService extends Service{
         IntentFilter filter = new IntentFilter();  
         filter.addAction(CTL_ACTION);  
         filter.addAction(SHOW_LRC);
+        filter.addAction(NET_MUSIC);
         registerReceiver(musicReceiver, filter);  
         
         // 设置音乐播放完成时的监听器 
@@ -133,6 +140,7 @@ public class PlayerService extends Service{
                  }
             }  
         });  
+          
         
 	}
 	
@@ -148,12 +156,17 @@ public class PlayerService extends Service{
 		path = intent.getStringExtra("url");
 		current = intent.getIntExtra("listPosition", -1);
 		msg = intent.getIntExtra("MSG", 0);
-		//未优化，线程过多容易卡死，需线程池
+		
+		//未优化，线程未释放
 		if (msg == AppConstant.PlayerMsg.PLAY_MSG) {		
 			play(0);
+			if (PlayerActivity.lrcView != null) {
+				lrcUrl = mp3Infos.get(current).getUrl();
+				initLrc(lrcUrl);
+			}
 		}
 		else if (msg == AppConstant.PlayerMsg.PAUSE_MSG) {
-			pause();
+			pause();		
 		}
 		else if (msg == AppConstant.PlayerMsg.STOP_MSG) {
 			stop();
@@ -163,9 +176,17 @@ public class PlayerService extends Service{
 		}
 		else if (msg == AppConstant.PlayerMsg.REVERSE_MSG) {
 			reverse();
+			if (PlayerActivity.lrcView != null) {
+				lrcUrl = mp3Infos.get(current).getUrl();
+				initLrc(lrcUrl);
+			}
 		}
 		else if (msg == AppConstant.PlayerMsg.NEXT_MSG) {
 			next();
+			if (PlayerActivity.lrcView != null) {
+				lrcUrl = mp3Infos.get(current).getUrl();
+				initLrc(lrcUrl);
+			}
 		}
 		else if (msg == AppConstant.PlayerMsg.PROGRESS_CHANGE) {
 			currentTime = intent.getIntExtra("progress", -1);
@@ -175,11 +196,17 @@ public class PlayerService extends Service{
 			handler.sendEmptyMessage(1);
 		}
 		else if (msg == AppConstant.PlayerMsg.NET_MSG) {
+			flag = 1;
+			mp3Infos = (List<Mp3Info>) intent.getSerializableExtra("listSearchResult");
+			current = intent.getIntExtra("current", -1);
 			new Thread(new Runnable() {
 				
 				public void run() {
-					// TODO Auto-generated method stub
 					play(0);
+					if (PlayerActivity.lrcView != null) {
+					lrcUrl = Environment.getExternalStorageDirectory() + "/Download" + File.separator + mp3Infos.get(current).getTitle() + ".lrc";
+					initLrc(lrcUrl);
+					}
 				}
 			}).start();
 			
@@ -197,15 +224,10 @@ public class PlayerService extends Service{
 	private void play(int currentTime){
 		try {
 			
-			if (PlayerActivity.lrcView != null) {
-				initLrc();
-			}
-
 			mediaPlayer.reset();
 			mediaPlayer.setDataSource(path);
 			mediaPlayer.prepare();
 			mediaPlayer.setOnPreparedListener(new PreparedListener(currentTime));
-			
 			
 			handler.sendEmptyMessage(1);
 			
@@ -320,11 +342,10 @@ public class PlayerService extends Service{
 	/**
 	 * 初始化歌词配置
 	 */
-	public void initLrc(){	
-		
+	public void initLrc(String url){	
 		mLrcProcess = new LrcProcess();
 		//读取歌词文件
-		mLrcProcess.readLRC(mp3Infos.get(current).getUrl());	
+		mLrcProcess.readLRC(url);	
 		//传回处理后的歌词文件
 		lrcList = mLrcProcess.getLrcList();		
 		PlayerActivity.lrcView.setmLrcList(lrcList);
@@ -391,10 +412,21 @@ public class PlayerService extends Service{
 			}
 			
 			String action = intent.getAction();
+			Bundle bundle = intent.getExtras();
 			if(action.equals(SHOW_LRC)){
+				if (flag == 1) {
+					mp3Infos = (List<Mp3Info>)bundle.getSerializable("listSearchResult");
+					lrcUrl = Environment.getExternalStorageDirectory() + "/Download" + File.separator + mp3Infos.get(current).getTitle() + ".lrc";
+					initLrc(lrcUrl);
+					flag = 0;
+				}
+				else{
 				current = intent.getIntExtra("listPosition", -1);
-				initLrc();
+				lrcUrl = mp3Infos.get(current).getUrl();
+				initLrc(lrcUrl);
+				}
 			}
+			
 			
 		}
 		

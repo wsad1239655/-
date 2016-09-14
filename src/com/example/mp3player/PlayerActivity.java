@@ -27,6 +27,7 @@ import android.widget.Toast;
 import custom.LrcView;
 import model.AppConstant;
 import model.Mp3Info;
+import utils.ImageUtils;
 import utils.MediaUtils;
 
 public class PlayerActivity extends Activity {
@@ -41,13 +42,14 @@ public class PlayerActivity extends Activity {
 	private SeekBar music_progressBar;
 	private TextView currentProgress;
 	private	TextView finalProgress;
+	private ImageView titleBack;
 	//滑动界面
 	private View albumView,lyricView;
 	private ViewPager viewPager;
 	private List<View> viewList;
 	
 	public static LrcView lrcView; // 自定义歌词视图
-	private ImageView musicAlbum;	//音乐专辑封面
+	private ImageView playerMusicAlbum;	//音乐专辑封面
 	
 	private String title;       //歌曲标题  
 	private String artist;      //歌曲艺术家  
@@ -56,6 +58,7 @@ public class PlayerActivity extends Activity {
 	private int currentTime;    //当前歌曲播放时间  
 	private int duration;       //歌曲长度  
 	private int flag;           //播放标识  
+	private String bigAlumUrl; //专辑大图；
 	
 	private int repeatState;  
 	private final int isCurrentRepeat = 1; // 单曲循环  
@@ -91,6 +94,7 @@ public class PlayerActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.player_activity);
 		
+		ImageUtils.initImageLoader(this);// ImageLoader初始化
 		//监听列表位置
 		list = new ArrayList<Integer>();
 		viewList = new ArrayList<View>();
@@ -115,7 +119,6 @@ public class PlayerActivity extends Activity {
 		PagerViewAdapter adapter = new PagerViewAdapter();	
 		viewPager.setAdapter(adapter);
 		
-
 
 	}
 	
@@ -166,6 +169,7 @@ public class PlayerActivity extends Activity {
 		music_progressBar = (SeekBar)findViewById(R.id.audioTrack);
 		currentProgress = (TextView)findViewById(R.id.current_progress);
 		finalProgress = (TextView)findViewById(R.id.final_progress);
+		titleBack = (ImageView)findViewById(R.id.titleBack);
 		
 		viewPager = (ViewPager)findViewById(R.id.viewpager);
 		LayoutInflater inflater = getLayoutInflater();
@@ -175,7 +179,7 @@ public class PlayerActivity extends Activity {
 		viewList.add(lyricView);
 		
 		lrcView = (LrcView)lyricView.findViewById(R.id.lrcShowView);
-		musicAlbum = (ImageView)albumView.findViewById(R.id.iv_music_ablum);
+		playerMusicAlbum = (ImageView)albumView.findViewById(R.id.iv_music_ablum);
 		
 	}
 	//设置控件监听器
@@ -185,6 +189,7 @@ public class PlayerActivity extends Activity {
 		playButton.setOnClickListener(clickListener);
 		shuffleButton.setOnClickListener(clickListener);
 		nextButton.setOnClickListener(clickListener);
+		titleBack.setOnClickListener(clickListener);
 		music_progressBar.setOnSeekBarChangeListener(new SeekBarChangeListener());
 	}
 	
@@ -203,6 +208,7 @@ public class PlayerActivity extends Activity {
 		currentTime = bundle.getInt("currentTime");
 		duration = bundle.getInt("duration");
 		isPlaying = bundle.getBoolean("isPlaying");
+		bigAlumUrl = bundle.getString("bigAlumUrl");
 		
 				
 		//接收广播并判断播放状态，更改播放图标
@@ -221,11 +227,15 @@ public class PlayerActivity extends Activity {
 		}
 		//进入PlayerActivity，发送广播，更新歌词
 		if (flag == AppConstant.PlayerMsg.PLAYING_MSG) { // 如果播放信息是正在播放
+			mp3Infos = (List<Mp3Info>) bundle.getSerializable("listSearchResult");
 			Intent intent1 = new Intent();
 			intent1.setAction(SHOW_LRC);
 			intent1.putExtra("listPosition", listPosition);
+			intent1.putExtra("listSearchResult", (Serializable)mp3Infos);
 			sendBroadcast(intent1);
 		}
+		
+		
 		
 		initView();
 				
@@ -240,8 +250,13 @@ public class PlayerActivity extends Activity {
 		finalProgress.setText(MediaUtils.formatTime(mp3Infos.get(listPosition).getDuration()));
 		//设置专辑封面
 		Mp3Info mp3Info = mp3Infos.get(listPosition);
-		Bitmap bm = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, false);
-		musicAlbum.setImageBitmap(bm);
+		if (bigAlumUrl != null) {
+			ImageUtils.disPlay(bigAlumUrl, playerMusicAlbum);
+		}
+		else{
+			Bitmap bm = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, false);
+			playerMusicAlbum.setImageBitmap(bm);
+		}
 
 	}
 	//控件点击事件
@@ -339,7 +354,10 @@ public class PlayerActivity extends Activity {
 					Toast.makeText(PlayerActivity.this, R.string.repeat_none, Toast.LENGTH_SHORT).show();
 				}
 				break;
-
+			case R.id.titleBack:
+				PlayerActivity.this.finish();
+				
+				break;
 			
 			}
 		}
@@ -397,7 +415,7 @@ public class PlayerActivity extends Activity {
 				list.add(listPosition);
 				Mp3Info mp3Info = mp3Infos.get(listPosition);
 				Bitmap bm = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, false);
-				musicAlbum.setImageBitmap(bm);
+				playerMusicAlbum.setImageBitmap(bm);
 				musicTitle.setText(mp3Info.getTitle());
 				Intent intent = new Intent();
 				intent.setAction("com.example.MUSIC_SERVICE");
@@ -416,7 +434,7 @@ public class PlayerActivity extends Activity {
 				list.add(listPosition);
 				Mp3Info mp3Info = mp3Infos.get(listPosition);
 				Bitmap bm = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, false);
-				musicAlbum.setImageBitmap(bm);
+				playerMusicAlbum.setImageBitmap(bm);
 				musicTitle.setText(mp3Info.getTitle());
 				Intent intent = new Intent();
 				intent.setAction("com.example.MUSIC_SERVICE");
@@ -462,6 +480,7 @@ public class PlayerActivity extends Activity {
 				}
 						
 			}
+			
 		
 				
 			
