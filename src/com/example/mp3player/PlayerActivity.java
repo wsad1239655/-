@@ -413,6 +413,7 @@ public class PlayerActivity extends Activity {
 			if (listPosition >  0) {
 				listPosition--;
 				list.add(listPosition);
+				mp3Infos = MediaUtils.getMp3Infos(PlayerActivity.this); 
 				Mp3Info mp3Info = mp3Infos.get(listPosition);
 				Bitmap bm = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, false);
 				playerMusicAlbum.setImageBitmap(bm);
@@ -432,6 +433,7 @@ public class PlayerActivity extends Activity {
 			if (listPosition < mp3Infos.size() - 1) {
 				listPosition++;
 				list.add(listPosition);
+				mp3Infos = MediaUtils.getMp3Infos(PlayerActivity.this); 
 				Mp3Info mp3Info = mp3Infos.get(listPosition);
 				Bitmap bm = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, false);
 				playerMusicAlbum.setImageBitmap(bm);
