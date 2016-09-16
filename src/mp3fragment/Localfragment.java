@@ -50,8 +50,10 @@ public class Localfragment extends Fragment{
 	private MainActivity activity;
 	//创建一个数列记录播放位置
   	private List list;
+  	
+  	private BroadcastReceiver localfragmentReceiver;
 	
-	 public static final String LIST_ACTION = "com.example.action.LIST_ACTION";      //记录音乐播放列表
+  	public static final String LIST_ACTION = "com.example.action.LIST_ACTION";      //记录音乐播放列表
 
 
 	@Override
@@ -78,7 +80,7 @@ public class Localfragment extends Fragment{
 		//接收广播
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(LIST_ACTION);
-		BroadcastReceiver localfragmentReceiver = new BroadcastReceiver() {
+		localfragmentReceiver = new BroadcastReceiver() {
 			
 			@Override
 			public void onReceive(Context context, Intent intent) {
@@ -172,6 +174,14 @@ public class Localfragment extends Fragment{
 			intent.putExtra("listPosition", position);
 			intent.setPackage(activity.getPackageName());
 			activity.startService(intent);
+		}
+
+
+		@Override
+		public void onDestroy() {
+			// TODO Auto-generated method stub
+			super.onDestroy();
+			activity.unregisterReceiver(localfragmentReceiver);
 		}
 
 	

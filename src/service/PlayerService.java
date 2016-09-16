@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.mp3player.MainActivity;
 import com.example.mp3player.PlayerActivity;
 import com.example.mp3player.R;
 
@@ -46,6 +47,7 @@ public class PlayerService extends Service{
 	private List<LrcInfo> lrcList = new ArrayList<LrcInfo>(); //存放歌词列表对象
 	private int index = 0;			//歌词检索值
 	private String lrcUrl;
+	private int flag = 0;
     
     
 	
@@ -151,17 +153,18 @@ public class PlayerService extends Service{
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {	
-		
+		mp3Infos = MediaUtils.getMp3Infos(PlayerService.this);
 		path = intent.getStringExtra("url");
 		current = intent.getIntExtra("listPosition", -1);
 		msg = intent.getIntExtra("MSG", 0);
 		
 		//未优化，线程未释放
-		if (msg == AppConstant.PlayerMsg.PLAY_MSG) {		
+		if (msg == AppConstant.PlayerMsg.PLAY_MSG) {	
 			play(0);
 			if (PlayerActivity.lrcView != null) {
 				lrcUrl = mp3Infos.get(current).getUrl().replace(".mp3", ".lrc");
 				initLrc(lrcUrl);
+				flag = 0;
 			}
 		}
 		else if (msg == AppConstant.PlayerMsg.PAUSE_MSG) {
@@ -178,6 +181,7 @@ public class PlayerService extends Service{
 			if (PlayerActivity.lrcView != null) {
 				lrcUrl = mp3Infos.get(current).getUrl().replace(".mp3", ".lrc");
 				initLrc(lrcUrl);
+				flag = 0;
 			}
 		}
 		else if (msg == AppConstant.PlayerMsg.NEXT_MSG) {
@@ -185,6 +189,7 @@ public class PlayerService extends Service{
 			if (PlayerActivity.lrcView != null) {
 				lrcUrl = mp3Infos.get(current).getUrl().replace(".mp3", ".lrc");
 				initLrc(lrcUrl);
+				flag = 0;
 			}
 		}
 		else if (msg == AppConstant.PlayerMsg.PROGRESS_CHANGE) {
@@ -201,6 +206,7 @@ public class PlayerService extends Service{
 				
 				public void run() {
 					play(0);
+					flag = 1;
 					if (PlayerActivity.lrcView != null) {
 					lrcUrl = Environment.getExternalStorageDirectory() + "/Download" + File.separator + mp3Infos.get(current).getTitle() + ".lrc";
 					initLrc(lrcUrl);
@@ -412,10 +418,15 @@ public class PlayerService extends Service{
 			String action = intent.getAction();
 			Bundle bundle = intent.getExtras();
 			if(action.equals(SHOW_LRC)){
-				mp3Infos = (List<Mp3Info>)bundle.getSerializable("listSearchResult");
-				lrcUrl = Environment.getExternalStorageDirectory() + "/Download" + File.separator + mp3Infos.get(current).getTitle() + ".lrc";
-				initLrc(lrcUrl);
-				
+				if (flag == 0) {
+					mp3Infos = MediaUtils.getMp3Infos(PlayerService.this);  
+					lrcUrl = mp3Infos.get(current).getUrl().replace(".mp3", ".lrc");
+					initLrc(lrcUrl);
+				} else {
+					mp3Infos = (List<Mp3Info>)bundle.getSerializable("listSearchResult");
+					lrcUrl = Environment.getExternalStorageDirectory() + "/Download" + File.separator + mp3Infos.get(current).getTitle() + ".lrc";
+					initLrc(lrcUrl);
+				}
 				
 			}
 			

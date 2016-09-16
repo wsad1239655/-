@@ -62,8 +62,7 @@ public class MainActivity extends Activity {
 	private Fragment fragment1;
 	private Fragment fragment2;
 	
-	private Mp3Info mp3Info;
-	
+	private int flag = 0;
 	 //一系列动作  
     public static final String UPDATE_ACTION = "com.example.action.UPDATE_ACTION";  
     public static final String CTL_ACTION = "com.example.action.CTL_ACTION";  
@@ -340,8 +339,8 @@ public class MainActivity extends Activity {
 		if (listPosition < mp3Infos.size() - 1) {
 			listPosition++;
 			//放入当前的播放位置在列表
-			mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); 
 			list.add(listPosition);
+			mp3Infos = MediaUtils.getMp3Infos(MainActivity.this); 		
 			Mp3Info mp3Info = mp3Infos.get(listPosition);
 			musicTitle.setText(mp3Info.getTitle());
 			Intent intent = new Intent();
